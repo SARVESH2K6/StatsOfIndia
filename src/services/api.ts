@@ -76,168 +76,37 @@ class ApiService {
     }
   }
 
-  // States API
-  async getStates(params?: {
-    region?: string;
-    isUT?: boolean;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-    limit?: number;
-    search?: string;
-  }): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/states${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any[]>(endpoint);
+  // Authentication API
+  async register(userData: { fullName: string; email: string; password: string }): Promise<ApiResponse<any>> {
+    return this.request<any>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
   }
 
-  async getState(id: string): Promise<ApiResponse<any>> {
-    return this.request<any>(`/states/${id}`);
+  async login(credentials: { email: string; password: string }): Promise<ApiResponse<any>> {
+    return this.request<any>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials)
+    });
   }
 
-  async getStatesByRegion(region: string): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/states/region/${region}`);
+  async getCurrentUser(token: string): Promise<ApiResponse<any>> {
+    return this.request<any>('/auth/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
   }
 
-  async getTopStatesByPopulation(limit: number = 10): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/states/top/population?limit=${limit}`);
-  }
-
-  async getTopStatesByArea(limit: number = 10): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/states/top/area?limit=${limit}`);
-  }
-
-  async getUnionTerritories(): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/states/union-territories`);
-  }
-
-  // Topics API
-  async getTopics(params?: {
+  // Datasets API
+  async getDatasets(params?: {
     category?: string;
-    active?: boolean;
-  }): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/topics${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any[]>(endpoint);
-  }
-
-  async getTopic(id: string): Promise<ApiResponse<any>> {
-    return this.request<any>(`/topics/${id}`);
-  }
-
-  async getTopicsByCategory(category: string): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/topics/category/${category}`);
-  }
-
-  // Statistics API
-  async getStatistics(params?: {
-    state_id?: string;
-    topic_id?: string;
+    state?: string;
     year?: number;
-    metric_name?: string;
+    search?: string;
     limit?: number;
     page?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }): Promise<PaginatedResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
-        }
-      });
-    }
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/statistics${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any[]>(endpoint) as Promise<PaginatedResponse<any[]>>;
-  }
-
-  async getLatestStatistics(topicId: string): Promise<ApiResponse<any[]>> {
-    return this.request<any[]>(`/statistics/latest/${topicId}`);
-  }
-
-  async getTopPerformers(topicId: string, metricName: string, year?: number, limit?: number): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (year) queryParams.append('year', year.toString());
-    if (limit) queryParams.append('limit', limit.toString());
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/statistics/top-performers/${topicId}/${encodeURIComponent(metricName)}${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any[]>(endpoint);
-  }
-
-  async getTrendData(stateId: string, topicId: string, metricName: string, startYear?: number, endYear?: number): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (startYear) queryParams.append('startYear', startYear.toString());
-    if (endYear) queryParams.append('endYear', endYear.toString());
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/statistics/trend/${stateId}/${topicId}/${encodeURIComponent(metricName)}${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any[]>(endpoint);
-  }
-
-  async getNationalAverage(topicId: string, metricName: string, year?: number): Promise<ApiResponse<any>> {
-    const queryParams = new URLSearchParams();
-    if (year) queryParams.append('year', year.toString());
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/statistics/national-average/${topicId}/${encodeURIComponent(metricName)}${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any>(endpoint);
-  }
-
-  async compareStates(topicId: string, metricName: string, year?: number, stateIds?: string[]): Promise<ApiResponse<any>> {
-    const queryParams = new URLSearchParams();
-    if (year) queryParams.append('year', year.toString());
-    if (stateIds) queryParams.append('stateIds', stateIds.join(','));
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/statistics/compare/${topicId}/${encodeURIComponent(metricName)}${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any>(endpoint);
-  }
-
-  async getStateStatistics(stateId: string, year?: number, topicId?: string): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (year) queryParams.append('year', year.toString());
-    if (topicId) queryParams.append('topic_id', topicId);
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/statistics/state/${stateId}${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any[]>(endpoint);
-  }
-
-  // Fun Facts API
-  async getFunFacts(params?: {
-    topic_id?: string;
-    category?: string;
-    featured?: boolean;
-    limit?: number;
   }): Promise<ApiResponse<any[]>> {
     const queryParams = new URLSearchParams();
     if (params) {
@@ -249,65 +118,75 @@ class ApiService {
     }
     
     const queryString = queryParams.toString();
-    const endpoint = `/fun-facts${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/datasets${queryString ? `?${queryString}` : ''}`;
     
     return this.request<any[]>(endpoint);
   }
 
-  async getFeaturedFunFacts(limit?: number): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (limit) queryParams.append('limit', limit.toString());
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/fun-facts/featured${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any[]>(endpoint);
+  async getDataset(id: string): Promise<ApiResponse<any>> {
+    return this.request<any>(`/datasets/${id}`);
   }
 
-  async getRandomFunFact(topicId?: string): Promise<ApiResponse<any>> {
-    const queryParams = new URLSearchParams();
-    if (topicId) queryParams.append('topic_id', topicId);
-    // Add cache-busting parameter to ensure fresh data on each request
-    queryParams.append('_t', Date.now().toString());
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/fun-facts/random?${queryString}`;
-    
-    return this.request<any>(endpoint);
+  async getDatasetsByCategory(category: string): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(`/datasets/categories/${category}`);
   }
 
-  async getFunFactsByTopic(topicId: string, limit?: number): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (limit) queryParams.append('limit', limit.toString());
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/fun-facts/topic/${topicId}${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any[]>(endpoint);
+  async getDatasetsByState(state: string): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(`/datasets/states/${state}`);
   }
 
-  // Comparisons API
-  async getComparison(topicId: string, metricName: string, year?: number, stateIds?: string[]): Promise<ApiResponse<any>> {
-    const queryParams = new URLSearchParams();
-    if (year) queryParams.append('year', year.toString());
-    if (stateIds) queryParams.append('stateIds', stateIds.join(','));
-    
-    const queryString = queryParams.toString();
-    const endpoint = `/comparisons/${topicId}/${encodeURIComponent(metricName)}${queryString ? `?${queryString}` : ''}`;
-    
-    return this.request<any>(endpoint);
+  async getPopularDatasets(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/datasets/popular');
   }
 
-  // Trends API
-  async getTrends(stateId: string, topicId: string, metricName: string, startYear?: number, endYear?: number): Promise<ApiResponse<any[]>> {
-    const queryParams = new URLSearchParams();
-    if (startYear) queryParams.append('startYear', startYear.toString());
-    if (endYear) queryParams.append('endYear', endYear.toString());
+  async getRecentDatasets(): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>('/datasets/recent');
+  }
+
+  async searchDatasets(query: string): Promise<ApiResponse<any[]>> {
+    return this.request<any[]>(`/datasets/search?q=${encodeURIComponent(query)}`);
+  }
+
+  async downloadDatasetFile(datasetId: string, fileId: string, token: string): Promise<Blob> {
+    const url = `${this.baseURL}/datasets/${datasetId}/download/${fileId}`;
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
     
-    const queryString = queryParams.toString();
-    const endpoint = `/trends/${stateId}/${topicId}/${encodeURIComponent(metricName)}${queryString ? `?${queryString}` : ''}`;
+    if (!response.ok) {
+      throw new Error('Download failed');
+    }
     
-    return this.request<any[]>(endpoint);
+    return response.blob();
+  }
+
+  async uploadDataset(formData: FormData, token: string): Promise<ApiResponse<any>> {
+    const url = `${this.baseURL}/datasets/upload`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Upload failed' }));
+      throw new Error(errorData.message || 'Upload failed');
+    }
+    
+    return response.json();
+  }
+
+  async deleteDataset(datasetId: string, token: string): Promise<ApiResponse<any>> {
+    return this.request<any>(`/datasets/${datasetId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
   }
 
   // Health check

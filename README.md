@@ -79,33 +79,23 @@ The application will be available at:
 
 ### Base URL: `http://localhost:5000/api`
 
-#### States
-- `GET /states` - Get all states with filtering
-- `GET /states/:id` - Get state by ID
-- `GET /states/region/:region` - Get states by region
-- `GET /states/top/population` - Get top states by population
-- `GET /states/top/area` - Get top states by area
-- `GET /states/union-territories` - Get all union territories
+#### Authentication
+- `POST /auth/register` - Register a new user
+- `POST /auth/login` - Login user
+- `GET /auth/me` - Get current user (Protected)
 
-#### Topics
-- `GET /topics` - Get all topics
-- `GET /topics/:id` - Get topic by ID
-- `GET /topics/category/:category` - Get topics by category
-
-#### Statistics
-- `GET /statistics` - Get all statistics with filtering and pagination
-- `GET /statistics/latest/:topicId` - Get latest statistics for a topic
-- `GET /statistics/top-performers/:topicId/:metricName` - Get top performers
-- `GET /statistics/trend/:stateId/:topicId/:metricName` - Get trend data
-- `GET /statistics/national-average/:topicId/:metricName` - Get national average
-- `GET /statistics/compare/:topicId/:metricName` - Compare states
-- `GET /statistics/state/:stateId` - Get statistics for a state
-
-#### Fun Facts
-- `GET /fun-facts` - Get all fun facts
-- `GET /fun-facts/featured` - Get featured fun facts
-- `GET /fun-facts/random` - Get random fun fact
-- `GET /fun-facts/topic/:topicId` - Get fun facts by topic
+#### Datasets
+- `GET /datasets` - Get all datasets
+- `GET /datasets/:id` - Get dataset by ID
+- `POST /datasets` - Create new dataset (Protected)
+- `DELETE /datasets/:id` - Delete dataset (Protected)
+- `GET /datasets/categories/:category` - Get datasets by category
+- `GET /datasets/states/:state` - Get datasets by state
+- `GET /datasets/popular` - Get popular datasets
+- `GET /datasets/recent` - Get recent datasets
+- `GET /datasets/search` - Search datasets
+- `GET /datasets/:id/download/:fileId` - Download dataset file
+- `POST /datasets/upload` - Upload dataset file (Protected)
 
 ## 🗃️ Database Schema
 
