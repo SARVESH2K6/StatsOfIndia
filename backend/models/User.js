@@ -95,6 +95,20 @@ const userSchema = new mongoose.Schema({
       type: Date,
       default: Date.now
     }
+  }],
+  bookmarks: [{
+    datasetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Dataset'
+    },
+    title: String,
+    category: String,
+    state: String,
+    year: Number,
+    bookmarkedAt: {
+      type: Date,
+      default: Date.now
+    }
   }]
 }, {
   timestamps: true,

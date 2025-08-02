@@ -96,6 +96,7 @@ export default function DatasetDetailPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [downloading, setDownloading] = useState<string | null>(null)
+  const [isBookmarked, setIsBookmarked] = useState(false)
 
   // Check authentication status
   useEffect(() => {
@@ -105,6 +106,9 @@ export default function DatasetDetailPage() {
     if (token && userData) {
       setIsLoggedIn(true)
       setUser(JSON.parse(userData))
+      
+      // Check if dataset is bookmarked
+      checkIfBookmarked()
     }
   }, [])
 
@@ -132,6 +136,25 @@ export default function DatasetDetailPage() {
 
     fetchDataset()
   }, [id])
+
+  const checkIfBookmarked = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        const isBookmarked = data.data.bookmarks.some((bookmark: any) => bookmark.datasetId === id)
+        setIsBookmarked(isBookmarked)
+      }
+    } catch (error) {
+      console.error('Error checking bookmark status:', error)
+    }
+  }
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -231,6 +254,62 @@ export default function DatasetDetailPage() {
     }
   }
 
+  const handleBookmark = async () => {
+    if (!isLoggedIn) {
+      alert('Please login to bookmark datasets')
+      navigate('/login')
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${id}/bookmark`, {
+        method: isBookmarked ? 'DELETE' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setIsBookmarked(!isBookmarked)
+        alert(isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks')
+      } else {
+        alert(data.message || 'Bookmark operation failed')
+      }
+    } catch (error) {
+      alert('Bookmark operation failed')
+    }
+  }
+
+  const handleRemoveBookmark = async () => {
+    if (!isLoggedIn) {
+      alert('Please login to manage bookmarks')
+      navigate('/login')
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${id}/bookmark`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setIsBookmarked(false)
+        alert('Removed from bookmarks')
+      } else {
+        alert(data.message || 'Remove bookmark failed')
+      }
+    } catch (error) {
+      alert('Remove bookmark failed')
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -262,44 +341,6 @@ export default function DatasetDetailPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/data-portal')}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">StatsOfIndia</h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Dataset Details</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm" onClick={handleShare}>
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-              <Button variant="outline" size="sm">
-                <BookmarkPlus className="w-4 h-4 mr-2" />
-                Bookmark
-              </Button>
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -609,10 +650,27 @@ export default function DatasetDetailPage() {
                     <Share2 className="w-4 h-4 mr-2" />
                     Share Dataset
                   </Button>
-                  <Button variant="outline" className="w-full">
-                    <BookmarkPlus className="w-4 h-4 mr-2" />
-                    Bookmark
-                  </Button>
+                  <div className="space-y-2">
+                    {isBookmarked ? (
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        onClick={handleRemoveBookmark}
+                      >
+                        <Bookmark className="w-4 h-4 mr-2 fill-current" />
+                        Remove Bookmark
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        className="w-full" 
+                        onClick={handleBookmark}
+                      >
+                        <BookmarkPlus className="w-4 h-4 mr-2" />
+                        Add Bookmark
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -143,15 +143,106 @@ router.get('/me', auth, async (req, res) => {
 
     res.json({
       success: true,
-      data: {
-        user: user.profile,
-        preferences: user.preferences,
-        downloadHistory: user.downloadHistory.slice(-10), // Last 10 downloads
-        searchHistory: user.searchHistory.slice(-10) // Last 10 searches
-      }
+              data: {
+          user: user.profile,
+          preferences: user.preferences,
+          downloadHistory: user.downloadHistory.slice(-10), // Last 10 downloads
+          searchHistory: user.searchHistory.slice(-10), // Last 10 searches
+          bookmarks: user.bookmarks // All bookmarks
+        }
     });
   } catch (error) {
     console.error('Get user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/auth/search-history
+// @desc    Save search to user's search history
+// @access  Private
+router.post('/search-history', auth, async (req, res) => {
+  try {
+    const { query, timestamp } = req.body;
+    
+    if (!query || !timestamp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Query and timestamp are required'
+      });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Add to search history (keep only last 50 searches)
+    user.searchHistory.push({
+      query,
+      searchedAt: new Date(timestamp)
+    });
+
+    // Keep only the last 50 searches
+    if (user.searchHistory.length > 50) {
+      user.searchHistory = user.searchHistory.slice(-50);
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Search history saved'
+    });
+
+  } catch (error) {
+    console.error('Save search history error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   PUT /api/auth/preferences
+// @desc    Update user preferences
+// @access  Private
+router.put('/preferences', auth, async (req, res) => {
+  try {
+    const { theme, notifications, dataCategories } = req.body;
+    
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update preferences
+    user.preferences = {
+      theme: theme || user.preferences?.theme || 'auto',
+      notifications: {
+        email: notifications?.email ?? true,
+        push: notifications?.push ?? false
+      },
+      dataCategories: dataCategories || []
+    };
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Preferences updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Update preferences error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

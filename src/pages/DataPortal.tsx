@@ -82,6 +82,7 @@ export default function DataPortalPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [bookmarkedDatasets, setBookmarkedDatasets] = useState<string[]>([])
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -158,31 +159,130 @@ export default function DataPortalPage() {
     if (token && userData) {
       setIsLoggedIn(true)
       setUser(JSON.parse(userData))
+      fetchBookmarkedDatasets()
     }
   }, [])
 
   // Fetch datasets from API
   useEffect(() => {
-    const fetchDatasets = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets`)
-        const data = await response.json()
-        
-        if (data.success) {
-          setDatasets(data.data)
-        } else {
-          setError('Failed to fetch datasets')
-        }
-      } catch (error) {
-        setError('Error connecting to server')
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchDatasets()
   }, [])
+
+  const fetchBookmarkedDatasets = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        const bookmarkedIds = data.data.bookmarks.map((bookmark: any) => bookmark.datasetId)
+        setBookmarkedDatasets(bookmarkedIds)
+      }
+    } catch (error) {
+      console.error('Error fetching bookmarked datasets:', error)
+    }
+  }
+
+  const handleBookmark = async (dataset: Dataset) => {
+    if (!isLoggedIn) {
+      alert('Please login to bookmark datasets')
+      navigate('/login')
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('token')
+      const isBookmarked = bookmarkedDatasets.includes(dataset._id)
+      
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${dataset._id}/bookmark`, {
+        method: isBookmarked ? 'DELETE' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        if (isBookmarked) {
+          setBookmarkedDatasets(bookmarkedDatasets.filter(id => id !== dataset._id))
+        } else {
+          setBookmarkedDatasets([...bookmarkedDatasets, dataset._id])
+        }
+      } else {
+        alert(data.message || 'Bookmark operation failed')
+      }
+    } catch (error) {
+      alert('Bookmark operation failed')
+    }
+  }
+
+  const handleSearch = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      fetchDatasets()
+      return
+    }
+
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/search?q=${encodeURIComponent(searchQuery)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        setDatasets(data.data)
+        // Save search to history if user is logged in
+        if (isLoggedIn && token) {
+          try {
+            await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/search-history`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({
+                query: searchQuery,
+                timestamp: new Date().toISOString()
+              })
+            })
+          } catch (error) {
+            console.error('Failed to save search history:', error)
+          }
+        }
+      } else {
+        setError('Search failed')
+      }
+    } catch (error) {
+      setError('Error performing search')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchDatasets = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setDatasets(data.data)
+      } else {
+        setError('Failed to fetch datasets')
+      }
+    } catch (error) {
+      setError('Error connecting to server')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -253,6 +353,72 @@ export default function DataPortalPage() {
     navigate(`/dataset/${dataset._id}`)
   }
 
+  const handlePreview = async (dataset: Dataset) => {
+    try {
+      // Check if dataset has CSV files
+      const hasCSV = dataset.files.some(file => file.fileType === 'csv')
+      if (!hasCSV) {
+        alert('Preview is only available for CSV files. This dataset does not contain CSV files.')
+        return
+      }
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${dataset._id}/preview`)
+      const data = await response.json()
+      
+      if (data.success) {
+        // Show preview in a modal or new window
+        const previewWindow = window.open('', '_blank', 'width=800,height=600')
+        if (previewWindow) {
+          previewWindow.document.write(`
+            <html>
+              <head>
+                <title>Dataset Preview - ${dataset.title}</title>
+                <style>
+                  body { font-family: Arial, sans-serif; margin: 20px; }
+                  table { border-collapse: collapse; width: 100%; }
+                  th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                  th { background-color: #f2f2f2; }
+                  .header { background: #1f2937; color: white; padding: 20px; margin: -20px -20px 20px -20px; }
+                  .info { margin-bottom: 20px; }
+                </style>
+              </head>
+              <body>
+                <div class="header">
+                  <h1>Dataset Preview</h1>
+                  <p><strong>${dataset.title}</strong></p>
+                  <p>Showing first 10 rows of data</p>
+                </div>
+                <div class="info">
+                  <p><strong>Category:</strong> ${dataset.category}</p>
+                  <p><strong>State:</strong> ${dataset.state}</p>
+                  <p><strong>Year:</strong> ${dataset.year}</p>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      ${data.headers.map((header: string) => `<th>${header}</th>`).join('')}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${data.rows.map((row: any[]) => 
+                      `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`
+                    ).join('')}
+                  </tbody>
+                </table>
+              </body>
+            </html>
+          `)
+          previewWindow.document.close()
+        }
+      } else {
+        alert(data.message || 'Preview not available for this dataset')
+      }
+    } catch (error) {
+      console.error('Preview error:', error)
+      alert('Error loading preview. Please try again.')
+    }
+  }
+
   const clearFilters = () => {
     setSearchQuery("")
     setSelectedCategory("all")
@@ -316,73 +482,32 @@ export default function DataPortalPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">StatsOfIndia</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Data Portal</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {isLoggedIn ? (
-                <div className="flex items-center space-x-3">
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    Welcome, {user?.fullName}
-                  </span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate('/dashboard')}
-                  >
-                    <User className="w-4 h-4 mr-2" />
-                    Dashboard
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate('/login')}
-                  >
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Login
-                  </Button>
-                  <Button 
-                    size="sm"
-                    onClick={() => navigate('/register')}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Register
-                  </Button>
-                </div>
-              )}
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search and Filters */}
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="flex-1">
-              <div className="relative">
+              <div className="relative flex">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
                   placeholder="Search datasets by title, description, or tags..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearch(searchQuery)
+                    }
+                  }}
+                  className="pl-10 pr-20"
                 />
+                <Button
+                  size="sm"
+                  onClick={() => handleSearch(searchQuery)}
+                  className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 px-3"
+                >
+                  Search
+                </Button>
               </div>
             </div>
             
@@ -504,8 +629,8 @@ export default function DataPortalPage() {
           )}
         </div>
 
-        {/* Upload Section for Logged In Users */}
-        {isLoggedIn && (
+        {/* Upload Section for Admin Users Only */}
+        {isLoggedIn && user?.role === 'admin' && (
           <div className="mb-8">
             <Card>
               <CardHeader>
@@ -651,7 +776,14 @@ export default function DataPortalPage() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex-1"
+                          onClick={() => handlePreview(dataset)}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Preview
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
                           onClick={() => handleViewDetails(dataset)}
                         >
                           <Info className="w-4 h-4 mr-2" />
@@ -659,11 +791,21 @@ export default function DataPortalPage() {
                         </Button>
                         <Button 
                           size="sm" 
-                          className="flex-1"
                           onClick={() => handleDownload(dataset)}
                         >
                           <Download className="w-4 h-4 mr-2" />
                           Download
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleBookmark(dataset)}
+                        >
+                          {bookmarkedDatasets.includes(dataset._id) ? (
+                            <Star className="w-4 h-4 text-yellow-500" />
+                          ) : (
+                            <Star className="w-4 h-4 text-gray-400" />
+                          )}
                         </Button>
                       </div>
                     </div>

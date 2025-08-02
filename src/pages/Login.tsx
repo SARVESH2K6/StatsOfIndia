@@ -9,7 +9,11 @@ import { Label } from "../components/ui/label"
 import { Alert, AlertDescription } from "../components/ui/alert"
 import { Eye, EyeOff, BarChart3, ArrowLeft } from "lucide-react"
 
-export default function LoginPage() {
+interface LoginPageProps {
+  onLoginSuccess?: (userData: any) => void
+}
+
+export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: "",
@@ -50,6 +54,11 @@ export default function LoginPage() {
         
         console.log('Stored token:', data.data.token)
         console.log('Stored user:', data.data.user)
+        
+        // Update parent component state
+        if (onLoginSuccess) {
+          onLoginSuccess(data.data.user)
+        }
         
         // Redirect based on user role
         console.log('Redirecting based on role...')

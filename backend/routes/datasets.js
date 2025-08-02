@@ -104,6 +104,99 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @route   GET /api/datasets/recent
+// @desc    Get recent datasets
+// @access  Public
+router.get('/recent', async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const datasets = await Dataset.findRecent(parseInt(limit))
+      .populate('createdBy', 'fullName email');
+
+    res.json({
+      success: true,
+      data: datasets
+    });
+  } catch (error) {
+    console.error('Get recent datasets error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching recent datasets'
+    });
+  }
+});
+
+// @route   GET /api/datasets/popular
+// @desc    Get popular datasets
+// @access  Public
+router.get('/popular', async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+    const datasets = await Dataset.findPopular(parseInt(limit))
+      .populate('createdBy', 'fullName email');
+
+    res.json({
+      success: true,
+      data: datasets
+    });
+  } catch (error) {
+    console.error('Get popular datasets error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching popular datasets'
+    });
+  }
+});
+
+// @route   GET /api/datasets/search
+// @desc    Search datasets
+// @access  Public
+router.get('/search', async (req, res) => {
+  try {
+    const { q, page = 1, limit = 10 } = req.query;
+
+    if (!q) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search query is required'
+      });
+    }
+
+    const datasets = await Dataset.search(q)
+      .populate('createdBy', 'fullName email')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit));
+
+    const total = await Dataset.countDocuments({
+      isActive: true,
+      isPublic: true,
+      $or: [
+        { title: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { tags: { $in: [new RegExp(q, 'i')] } }
+      ]
+    });
+
+    res.json({
+      success: true,
+      data: datasets,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Search datasets error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while searching datasets'
+    });
+  }
+});
+
 // @route   GET /api/datasets/:id
 // @desc    Get dataset by ID
 // @access  Public
@@ -589,76 +682,7 @@ router.get('/popular', async (req, res) => {
   }
 });
 
-// @route   GET /api/datasets/recent
-// @desc    Get recent datasets
-// @access  Public
-router.get('/recent', async (req, res) => {
-  try {
-    const { limit = 10 } = req.query;
-    const datasets = await Dataset.findRecent(parseInt(limit))
-      .populate('createdBy', 'fullName email');
 
-    res.json({
-      success: true,
-      data: datasets
-    });
-  } catch (error) {
-    console.error('Get recent datasets error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while fetching recent datasets'
-    });
-  }
-});
-
-// @route   GET /api/datasets/search
-// @desc    Search datasets
-// @access  Public
-router.get('/search', async (req, res) => {
-  try {
-    const { q, page = 1, limit = 10 } = req.query;
-
-    if (!q) {
-      return res.status(400).json({
-        success: false,
-        message: 'Search query is required'
-      });
-    }
-
-    const datasets = await Dataset.search(q)
-      .populate('createdBy', 'fullName email')
-      .sort({ createdAt: -1 })
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit));
-
-    const total = await Dataset.countDocuments({
-      isActive: true,
-      isPublic: true,
-      $or: [
-        { title: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } },
-        { tags: { $in: [new RegExp(q, 'i')] } }
-      ]
-    });
-
-    res.json({
-      success: true,
-      data: datasets,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / parseInt(limit))
-      }
-    });
-  } catch (error) {
-    console.error('Search datasets error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error while searching datasets'
-    });
-  }
-});
 
 // @route   POST /api/datasets/upload
 // @desc    Upload dataset file (Admin only)
@@ -758,6 +782,187 @@ router.post('/upload', auth, upload.single('file'), async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while uploading dataset'
+    });
+  }
+});
+
+// @route   GET /api/datasets/:id/preview
+// @desc    Get preview of dataset (first 10 rows)
+// @access  Public
+router.get('/:id/preview', async (req, res) => {
+  try {
+    const dataset = await Dataset.findById(req.params.id);
+    
+    if (!dataset) {
+      return res.status(404).json({
+        success: false,
+        message: 'Dataset not found'
+      });
+    }
+
+    if (!dataset.isActive || !dataset.isPublic) {
+      return res.status(403).json({
+        success: false,
+        message: 'Dataset not accessible'
+      });
+    }
+
+    // Find the first CSV file
+    const csvFile = dataset.files.find(file => file.fileType === 'csv' && file.isActive);
+    
+    if (!csvFile) {
+      return res.status(404).json({
+        success: false,
+        message: 'No CSV file available for preview'
+      });
+    }
+
+    // Read the CSV file and return first 10 rows
+    const fs = require('fs');
+    const csv = require('csv-parser');
+    const path = require('path');
+    
+    const filePath = path.join(__dirname, '..', csvFile.filePath);
+    
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+
+    const results = [];
+    const headers = [];
+    let rowCount = 0;
+
+    return new Promise((resolve, reject) => {
+      const csvStream = fs.createReadStream(filePath).pipe(csv());
+      
+      csvStream
+        .on('headers', (headerList) => {
+          headers.push(...headerList);
+        })
+        .on('data', (data) => {
+          if (rowCount < 10) {
+            results.push(Object.values(data));
+            rowCount++;
+          } else {
+            // Stop reading after 10 rows
+            csvStream.destroy();
+          }
+        })
+        .on('end', () => {
+          res.json({
+            success: true,
+            headers: headers,
+            rows: results,
+            totalRows: rowCount
+          });
+          resolve();
+        })
+        .on('error', (error) => {
+          res.status(500).json({
+            success: false,
+            message: 'Error reading file'
+          });
+          reject(error);
+        });
+    });
+
+  } catch (error) {
+    console.error('Preview error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/datasets/:id/bookmark
+// @desc    Add dataset to user's bookmarks
+// @access  Private
+router.post('/:id/bookmark', auth, async (req, res) => {
+  try {
+    const dataset = await Dataset.findById(req.params.id);
+    
+    if (!dataset) {
+      return res.status(404).json({
+        success: false,
+        message: 'Dataset not found'
+      });
+    }
+
+    if (!dataset.isActive || !dataset.isPublic) {
+      return res.status(403).json({
+        success: false,
+        message: 'Dataset not accessible'
+      });
+    }
+
+    const user = await User.findById(req.user.userId);
+    
+    // Check if already bookmarked
+    const existingBookmark = user.bookmarks.find(bookmark => 
+      bookmark.datasetId.toString() === req.params.id
+    );
+
+    if (existingBookmark) {
+      return res.status(400).json({
+        success: false,
+        message: 'Dataset already bookmarked'
+      });
+    }
+
+    // Add to bookmarks
+    user.bookmarks.push({
+      datasetId: dataset._id,
+      title: dataset.title,
+      category: dataset.category,
+      state: dataset.state,
+      year: dataset.year,
+      bookmarkedAt: new Date()
+    });
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Dataset bookmarked successfully'
+    });
+
+  } catch (error) {
+    console.error('Bookmark error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   DELETE /api/datasets/:id/bookmark
+// @desc    Remove dataset from user's bookmarks
+// @access  Private
+router.delete('/:id/bookmark', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId);
+    
+    // Remove from bookmarks
+    user.bookmarks = user.bookmarks.filter(bookmark => 
+      bookmark.datasetId.toString() !== req.params.id
+    );
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Bookmark removed successfully'
+    });
+
+  } catch (error) {
+    console.error('Remove bookmark error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
     });
   }
 });
