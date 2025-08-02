@@ -273,8 +273,8 @@ npm run test:coverage
 ```env
 NODE_ENV=production
 PORT=5000
-MONGODB_URI_PROD=mongodb+srv://username:password@cluster.mongodb.net/stats-of-india
-JWT_SECRET=your-super-secret-jwt-key
+MONGODB_URI_PROD=mongodb+srv://your-username:your-password@your-cluster.mongodb.net/stats-of-india
+JWT_SECRET=your-jwt-secret-key-change-this-in-production
 CORS_ORIGIN=https://your-frontend-domain.com
 ```
 
