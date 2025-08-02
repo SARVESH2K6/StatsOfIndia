@@ -11,7 +11,7 @@ const router = express.Router();
 // @access  Public
 router.post('/register', validateRegistration, async (req, res) => {
   try {
-    const { fullName, email, password } = req.body;
+    const { fullName, email, phone, organization, password } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findByEmail(email);
@@ -26,6 +26,8 @@ router.post('/register', validateRegistration, async (req, res) => {
     const user = new User({
       fullName,
       email,
+      phone,
+      organization,
       password
     });
 
@@ -42,12 +44,7 @@ router.post('/register', validateRegistration, async (req, res) => {
       success: true,
       message: 'User registered successfully',
       data: {
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role
-        },
+        user: user.profile,
         token
       }
     });
@@ -76,22 +73,36 @@ router.post('/login', validateLogin, async (req, res) => {
       });
     }
 
+    // Check if account is locked
+    if (user.isLocked()) {
+      return res.status(423).json({
+        success: false,
+        message: 'Account is temporarily locked due to multiple failed login attempts. Please try again later.'
+      });
+    }
+
     // Check if user is active
     if (!user.isActive) {
       return res.status(401).json({
         success: false,
-        message: 'Account is deactivated'
+        message: 'Account is deactivated. Please contact support.'
       });
     }
 
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
+      // Increment login attempts
+      await user.incLoginAttempts();
+      
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
+
+    // Reset login attempts on successful login
+    await user.resetLoginAttempts();
 
     // Generate JWT token
     const token = jwt.sign(
@@ -104,12 +115,7 @@ router.post('/login', validateLogin, async (req, res) => {
       success: true,
       message: 'Login successful',
       data: {
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role
-        },
+        user: user.profile,
         token
       }
     });
@@ -138,12 +144,10 @@ router.get('/me', auth, async (req, res) => {
     res.json({
       success: true,
       data: {
-        user: {
-          id: user._id,
-          fullName: user.fullName,
-          email: user.email,
-          role: user.role
-        }
+        user: user.profile,
+        preferences: user.preferences,
+        downloadHistory: user.downloadHistory.slice(-10), // Last 10 downloads
+        searchHistory: user.searchHistory.slice(-10) // Last 10 searches
       }
     });
   } catch (error) {

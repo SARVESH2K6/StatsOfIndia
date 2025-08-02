@@ -27,7 +27,20 @@ const validateRegistration = [
   
   body('password')
     .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long'),
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
+  
+  body('phone')
+    .optional()
+    .matches(/^[0-9+\-\s()]*$/)
+    .withMessage('Please enter a valid phone number'),
+  
+  body('organization')
+    .optional()
+    .trim()
+    .isLength({ max: 200 })
+    .withMessage('Organization name cannot exceed 200 characters'),
   
   validate
 ];
@@ -59,7 +72,7 @@ const validateDataset = [
     .withMessage('Description must be between 10 and 1000 characters'),
   
   body('category')
-    .isIn(['demographics', 'education', 'economy', 'health', 'agriculture'])
+    .isIn(['demographics', 'education', 'economy', 'health', 'agriculture', 'infrastructure'])
     .withMessage('Invalid category'),
   
   body('state')

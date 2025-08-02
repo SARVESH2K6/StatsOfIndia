@@ -30,7 +30,13 @@ import {
   Plus,
   Upload,
   User,
-  LogIn
+  LogIn,
+  SortAsc,
+  SortDesc,
+  Grid,
+  List,
+  Info,
+  ExternalLink
 } from "lucide-react"
 import { ThemeToggle } from "../components/theme-toggle"
 
@@ -42,6 +48,8 @@ interface Dataset {
   state: string
   year: number
   source: string
+  sourceUrl?: string
+  tags: string[]
   files: Array<{
     fileName: string
     fileType: string
@@ -65,11 +73,15 @@ export default function DataPortalPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedState, setSelectedState] = useState("all")
   const [selectedYear, setSelectedYear] = useState("all")
+  const [sortBy, setSortBy] = useState("createdAt")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [datasets, setDatasets] = useState<Dataset[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [showFilters, setShowFilters] = useState(false)
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -93,7 +105,26 @@ export default function DataPortalPage() {
     { value: "uttar-pradesh", label: "Uttar Pradesh" },
     { value: "bihar", label: "Bihar" },
     { value: "kerala", label: "Kerala" },
-    { value: "andhra-pradesh", label: "Andhra Pradesh" }
+    { value: "andhra-pradesh", label: "Andhra Pradesh" },
+    { value: "rajasthan", label: "Rajasthan" },
+    { value: "madhya-pradesh", label: "Madhya Pradesh" },
+    { value: "telangana", label: "Telangana" },
+    { value: "odisha", label: "Odisha" },
+    { value: "punjab", label: "Punjab" },
+    { value: "haryana", label: "Haryana" },
+    { value: "jharkhand", label: "Jharkhand" },
+    { value: "chhattisgarh", label: "Chhattisgarh" },
+    { value: "assam", label: "Assam" },
+    { value: "himachal-pradesh", label: "Himachal Pradesh" },
+    { value: "uttarakhand", label: "Uttarakhand" },
+    { value: "goa", label: "Goa" },
+    { value: "sikkim", label: "Sikkim" },
+    { value: "manipur", label: "Manipur" },
+    { value: "meghalaya", label: "Meghalaya" },
+    { value: "mizoram", label: "Mizoram" },
+    { value: "nagaland", label: "Nagaland" },
+    { value: "tripura", label: "Tripura" },
+    { value: "arunachal-pradesh", label: "Arunachal Pradesh" }
   ]
 
   const years = [
@@ -102,7 +133,21 @@ export default function DataPortalPage() {
     { value: "2023", label: "2023" },
     { value: "2022", label: "2022" },
     { value: "2021", label: "2021" },
-    { value: "2020", label: "2020" }
+    { value: "2020", label: "2020" },
+    { value: "2019", label: "2019" },
+    { value: "2018", label: "2018" },
+    { value: "2017", label: "2017" },
+    { value: "2016", label: "2016" },
+    { value: "2015", label: "2015" }
+  ]
+
+  const sortOptions = [
+    { value: "createdAt", label: "Date Added" },
+    { value: "title", label: "Title" },
+    { value: "year", label: "Year" },
+    { value: "statistics.downloadCount", label: "Downloads" },
+    { value: "statistics.viewCount", label: "Views" },
+    { value: "statistics.rating.average", label: "Rating" }
   ]
 
   // Check authentication status
@@ -153,13 +198,13 @@ export default function DataPortalPage() {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case "demographics": return "bg-blue-100 text-blue-800"
-      case "economy": return "bg-green-100 text-green-800"
-      case "education": return "bg-purple-100 text-purple-800"
-      case "health": return "bg-red-100 text-red-800"
-      case "agriculture": return "bg-yellow-100 text-yellow-800"
-      case "infrastructure": return "bg-gray-100 text-gray-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "demographics": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+      case "economy": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+      case "education": return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+      case "health": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+      case "agriculture": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+      case "infrastructure": return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
     }
   }
 
@@ -180,7 +225,7 @@ export default function DataPortalPage() {
 
     try {
       const token = localStorage.getItem('token')
-              const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${dataset._id}/download/${fileIndex}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${dataset._id}/download/${fileIndex}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -204,20 +249,70 @@ export default function DataPortalPage() {
     }
   }
 
-  const handlePreview = (dataset: Dataset) => {
-    // For now, just show dataset details
-    alert(`Preview: ${dataset.title}\n\n${dataset.description}`)
+  const handleViewDetails = (dataset: Dataset) => {
+    navigate(`/dataset/${dataset._id}`)
   }
 
-  const filteredDatasets = datasets.filter(dataset => {
-    const matchesSearch = dataset.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         dataset.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = selectedCategory === "all" || dataset.category === selectedCategory
-    const matchesState = selectedState === "all" || dataset.state === selectedState
-    const matchesYear = selectedYear === "all" || dataset.year.toString() === selectedYear
+  const clearFilters = () => {
+    setSearchQuery("")
+    setSelectedCategory("all")
+    setSelectedState("all")
+    setSelectedYear("all")
+  }
 
-    return matchesSearch && matchesCategory && matchesState && matchesYear
-  })
+  const filteredAndSortedDatasets = datasets
+    .filter(dataset => {
+      const matchesSearch = dataset.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           dataset.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           dataset.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      const matchesCategory = selectedCategory === "all" || dataset.category === selectedCategory
+      const matchesState = selectedState === "all" || dataset.state === selectedState
+      const matchesYear = selectedYear === "all" || dataset.year.toString() === selectedYear
+
+      return matchesSearch && matchesCategory && matchesState && matchesYear
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any
+
+      switch (sortBy) {
+        case "statistics.downloadCount":
+          aValue = a.statistics.downloadCount
+          bValue = b.statistics.downloadCount
+          break
+        case "statistics.viewCount":
+          aValue = a.statistics.viewCount
+          bValue = b.statistics.viewCount
+          break
+        case "statistics.rating.average":
+          aValue = a.statistics.rating.average
+          bValue = b.statistics.rating.average
+          break
+        case "title":
+          aValue = a.title.toLowerCase()
+          bValue = b.title.toLowerCase()
+          break
+        case "year":
+          aValue = a.year
+          bValue = b.year
+          break
+        default:
+          aValue = new Date(a.createdAt).getTime()
+          bValue = new Date(b.createdAt).getTime()
+      }
+
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
+
+  const activeFilters = [
+    selectedCategory !== "all" && `Category: ${categories.find(c => c.value === selectedCategory)?.label}`,
+    selectedState !== "all" && `State: ${states.find(s => s.value === selectedState)?.label}`,
+    selectedYear !== "all" && `Year: ${selectedYear}`,
+    searchQuery && `Search: "${searchQuery}"`
+  ].filter(Boolean)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -283,7 +378,7 @@ export default function DataPortalPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <Input
-                  placeholder="Search datasets..."
+                  placeholder="Search datasets by title, description, or tags..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -292,46 +387,121 @@ export default function DataPortalPage() {
             </div>
             
             <div className="flex gap-4">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center"
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                Filters
+              </Button>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Category" />
+                  <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.value} value={category.value}>
-                      {category.label}
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
-              <Select value={selectedState} onValueChange={setSelectedState}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="State" />
-                </SelectTrigger>
-                <SelectContent>
-                  {states.map((state) => (
-                    <SelectItem key={state.value} value={state.value}>
-                      {state.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              >
+                {sortOrder === "asc" ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+              </Button>
 
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map((year) => (
-                    <SelectItem key={year.value} value={year.value}>
-                      {year.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex border rounded-md">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                  className="rounded-r-none"
+                >
+                  <Grid className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="rounded-l-none"
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
+
+          {/* Advanced Filters */}
+          {showFilters && (
+            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg border">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedState} onValueChange={setSelectedState}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="State" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {states.map((state) => (
+                      <SelectItem key={state.value} value={state.value}>
+                        {state.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year.value} value={year.value}>
+                        {year.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {activeFilters.length > 0 && (
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Active filters:</span>
+                  {activeFilters.map((filter, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {filter}
+                    </Badge>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-xs"
+                  >
+                    Clear all
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Upload Section for Logged In Users */}
@@ -357,6 +527,18 @@ export default function DataPortalPage() {
           </div>
         )}
 
+        {/* Results Summary */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Showing {filteredAndSortedDatasets.length} of {datasets.length} datasets
+          </div>
+          {activeFilters.length > 0 && (
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Filtered by: {activeFilters.join(", ")}
+            </div>
+          )}
+        </div>
+
         {/* Results */}
         <div className="space-y-6">
           {loading ? (
@@ -368,7 +550,7 @@ export default function DataPortalPage() {
             <Alert>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-          ) : filteredDatasets.length === 0 ? (
+          ) : filteredAndSortedDatasets.length === 0 ? (
             <div className="text-center py-12">
               <Database className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No datasets found</h3>
@@ -378,10 +560,22 @@ export default function DataPortalPage() {
                   : "Try adjusting your search criteria."
                 }
               </p>
+              {activeFilters.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="mt-4"
+                >
+                  Clear filters
+                </Button>
+              )}
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredDatasets.map((dataset) => (
+            <div className={viewMode === "grid" 
+              ? "grid gap-6 md:grid-cols-2 lg:grid-cols-3" 
+              : "space-y-4"
+            }>
+              {filteredAndSortedDatasets.map((dataset) => (
                 <Card key={dataset._id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
@@ -394,6 +588,7 @@ export default function DataPortalPage() {
                       <div className="flex items-center space-x-1 text-sm text-gray-500">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                         <span>{dataset.statistics.rating.average.toFixed(1)}</span>
+                        <span className="text-xs">({dataset.statistics.rating.count})</span>
                       </div>
                     </div>
                     <CardTitle className="text-lg">{dataset.title}</CardTitle>
@@ -437,15 +632,30 @@ export default function DataPortalPage() {
                         </div>
                       </div>
 
+                      {dataset.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {dataset.tags.slice(0, 3).map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {dataset.tags.length > 3 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{dataset.tags.length - 3} more
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+
                       <div className="flex space-x-2 pt-2">
                         <Button 
                           variant="outline" 
                           size="sm" 
                           className="flex-1"
-                          onClick={() => handlePreview(dataset)}
+                          onClick={() => handleViewDetails(dataset)}
                         >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Preview
+                          <Info className="w-4 h-4 mr-2" />
+                          Details
                         </Button>
                         <Button 
                           size="sm" 

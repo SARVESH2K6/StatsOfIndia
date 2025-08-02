@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import DataPortal from "./pages/DataPortal";
+import DatasetDetail from "./pages/DatasetDetail";
 import "./globals.css"; // Ensure global styles are imported
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/data-portal" element={<DataPortal />} />
+        <Route path="/dataset/:id" element={<DatasetDetail />} />
         <Route path="/statistics" element={<Statistics />} />
         <Route path="/topic/:id" element={<TopicPage />} />
       </Routes>
