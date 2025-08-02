@@ -27,20 +27,7 @@ const validateRegistration = [
   
   body('password')
     .isLength({ min: 8 })
-    .withMessage('Password must be at least 8 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Password must contain at least one lowercase letter, one uppercase letter, and one number'),
-  
-  body('phone')
-    .optional()
-    .matches(/^[0-9+\-\s()]*$/)
-    .withMessage('Please enter a valid phone number'),
-  
-  body('organization')
-    .optional()
-    .trim()
-    .isLength({ max: 200 })
-    .withMessage('Organization name cannot exceed 200 characters'),
+    .withMessage('Password must be at least 8 characters long'),
   
   validate
 ];
@@ -72,7 +59,7 @@ const validateDataset = [
     .withMessage('Description must be between 10 and 1000 characters'),
   
   body('category')
-    .isIn(['demographics', 'education', 'economy', 'health', 'agriculture', 'infrastructure'])
+    .isIn(['demographics', 'education', 'economy', 'health', 'agriculture'])
     .withMessage('Invalid category'),
   
   body('state')
@@ -105,47 +92,8 @@ const validateDataset = [
   validate
 ];
 
-// Password change validation
-const validatePasswordChange = [
-  body('currentPassword')
-    .notEmpty()
-    .withMessage('Current password is required'),
-  
-  body('newPassword')
-    .isLength({ min: 8 })
-    .withMessage('New password must be at least 8 characters long')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('New password must contain at least one lowercase letter, one uppercase letter, and one number'),
-  
-  validate
-];
-
-// Profile update validation
-const validateProfileUpdate = [
-  body('fullName')
-    .optional()
-    .trim()
-    .isLength({ min: 2, max: 100 })
-    .withMessage('Full name must be between 2 and 100 characters'),
-  
-  body('phone')
-    .optional()
-    .matches(/^[0-9+\-\s()]*$/)
-    .withMessage('Please enter a valid phone number'),
-  
-  body('organization')
-    .optional()
-    .trim()
-    .isLength({ max: 200 })
-    .withMessage('Organization name cannot exceed 200 characters'),
-  
-  validate
-];
-
 module.exports = {
   validateRegistration,
   validateLogin,
-  validateDataset,
-  validatePasswordChange,
-  validateProfileUpdate
+  validateDataset
 }; 

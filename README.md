@@ -22,12 +22,11 @@ A college project for exploring and analyzing statistics across Indian states an
 - **Error Handling** with custom middleware
 
 ### Data Categories
-- **Crime & Safety** - Crime rates, safety indices, law enforcement
+- **Demographics** - Population, age distribution, gender ratio
 - **Education** - Literacy rates, school enrollments, higher education
-- **Tourism** - Tourist arrivals, revenue, heritage sites
-- **Agriculture** - Crop production, farmer statistics, exports
-- **Health** - Life expectancy, infant mortality, healthcare access
 - **Economy** - GDP growth, per capita income, employment
+- **Health** - Life expectancy, infant mortality, healthcare access
+- **Agriculture** - Crop production, farmer statistics, exports
 
 ## 📋 Prerequisites
 
@@ -111,22 +110,20 @@ The application will be available at:
 ## 🗃️ Database Schema
 
 The project uses MongoDB with the following main collections:
-- **States**: State and union territory information
-- **Topics**: Different categories of statistics
-- **Statistics**: Actual data values
-- **FunFacts**: Interesting facts about states
+- **Users**: User authentication and profiles
+- **Datasets**: Statistical data files and metadata
 
 ## 🎨 Frontend Components
 
 ### Pages
 - **Home** - Landing page with overview
-- **Statistics** - Detailed statistics with charts
-- **Comparison** - Compare states across metrics
+- **Data Portal** - Browse and download datasets
 - **Admin Dashboard** - Admin panel for data management
 
 ### Features
-- **Theme Toggle** - Dark/light mode
-- **Interactive Charts** - Data visualizations
+- **User Authentication** - Login/Register system
+- **File Upload** - Upload CSV/PDF datasets
+- **Data Management** - Admin dashboard for managing datasets
 - **Responsive Design** - Works on all devices
 
 ## 🛡️ Security Features
