@@ -7,6 +7,7 @@ const Dataset = require('../models/Dataset');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { validateDataset } = require('../middleware/validation');
+const { parseCSVPreview, getCSVStats } = require('../utils/csvParser');
 
 const router = express.Router();
 
@@ -535,8 +536,8 @@ router.delete('/:id/files/:fileId', auth, async (req, res) => {
 
 // @route   GET /api/datasets/:id/download/:fileId
 // @desc    Download dataset file
-// @access  Public
-router.get('/:id/download/:fileId', async (req, res) => {
+// @access  Private
+router.get('/:id/download/:fileId', auth, async (req, res) => {
   try {
     const dataset = await Dataset.findById(req.params.id);
     
@@ -586,6 +587,72 @@ router.get('/:id/download/:fileId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while downloading file'
+    });
+  }
+});
+
+// @route   GET /api/datasets/:id/preview/:fileId
+// @desc    Preview CSV file content
+// @access  Private
+router.get('/:id/preview/:fileId', auth, async (req, res) => {
+  try {
+    const dataset = await Dataset.findById(req.params.id);
+    
+    if (!dataset || !dataset.isActive || !dataset.isPublic) {
+      return res.status(404).json({
+        success: false,
+        message: 'Dataset not found'
+      });
+    }
+
+    const file = dataset.files.id(req.params.fileId);
+    if (!file || !file.isActive) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found'
+      });
+    }
+
+    // Check if file exists
+    if (!fs.existsSync(file.filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'File not found on server'
+      });
+    }
+
+    // Only allow preview for CSV files
+    if (file.fileType.toLowerCase() !== 'csv') {
+      return res.status(400).json({
+        success: false,
+        message: 'Preview is only available for CSV files'
+      });
+    }
+
+    // Get preview parameters
+    const maxRows = parseInt(req.query.maxRows) || 10;
+    
+    // Parse CSV file for preview
+    const previewData = parseCSVPreview(file.filePath, maxRows);
+    
+    // Get file statistics
+    const fileStats = getCSVStats(file.filePath);
+
+    res.json({
+      success: true,
+      data: {
+        fileName: file.originalName,
+        fileType: file.fileType,
+        fileSize: file.fileSize,
+        preview: previewData,
+        stats: fileStats
+      }
+    });
+  } catch (error) {
+    console.error('Preview file error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while previewing file'
     });
   }
 });

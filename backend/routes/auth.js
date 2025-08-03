@@ -3,11 +3,12 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { validateRegistration, validateLogin } = require('../middleware/validation');
 const auth = require('../middleware/auth');
+const { generateOTP, sendOTPEmail, sendWelcomeEmail } = require('../utils/emailService');
 
 const router = express.Router();
 
 // @route   POST /api/auth/register
-// @desc    Register a new user
+// @desc    Register a new user and send OTP
 // @access  Public
 router.post('/register', validateRegistration, async (req, res) => {
   try {
@@ -22,16 +23,119 @@ router.post('/register', validateRegistration, async (req, res) => {
       });
     }
 
-    // Create new user
+    // Generate OTP
+    const otp = generateOTP();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Create new user with OTP
     const user = new User({
       fullName,
       email,
       phone,
       organization,
-      password
+      password,
+      isEmailVerified: false,
+      emailVerificationOTP: {
+        code: otp,
+        expiresAt: otpExpiresAt
+      }
     });
 
     await user.save();
+
+    // Send OTP email
+    const emailResult = await sendOTPEmail(email, otp);
+    if (!emailResult.success) {
+      // If email fails, delete the user and return error
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again.'
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Registration successful! Please check your email for verification code.',
+      data: {
+        userId: user._id,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during registration'
+    });
+  }
+});
+
+// @route   POST /api/auth/verify-email
+// @desc    Verify email with OTP
+// @access  Public
+router.post('/verify-email', async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+
+    if (!userId || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID and OTP are required'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+
+    // Check if OTP exists and is valid
+    if (!user.emailVerificationOTP.code || !user.emailVerificationOTP.expiresAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'No verification code found. Please register again.'
+      });
+    }
+
+    // Check if OTP is expired
+    if (new Date() > user.emailVerificationOTP.expiresAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification code has expired. Please register again.'
+      });
+    }
+
+    // Check if OTP matches
+    if (user.emailVerificationOTP.code !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification code'
+      });
+    }
+
+    // Verify email
+    user.isEmailVerified = true;
+    user.emailVerificationOTP = {
+      code: null,
+      expiresAt: null
+    };
+    await user.save();
+
+    // Send welcome email
+    await sendWelcomeEmail(user.email, user.fullName);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -40,19 +144,83 @@ router.post('/register', validateRegistration, async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({
+    res.json({
       success: true,
-      message: 'User registered successfully',
+      message: 'Email verified successfully! Welcome to StatsOfIndia.',
       data: {
         user: user.profile,
         token
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Email verification error:', error);
     res.status(500).json({
       success: false,
-      message: 'Server error during registration'
+      message: 'Server error during email verification'
+    });
+  }
+});
+
+// @route   POST /api/auth/resend-otp
+// @desc    Resend OTP for email verification
+// @access  Public
+router.post('/resend-otp', async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
+    // Find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is already verified'
+      });
+    }
+
+    // Generate new OTP
+    const otp = generateOTP();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Update OTP
+    user.emailVerificationOTP = {
+      code: otp,
+      expiresAt: otpExpiresAt
+    };
+    await user.save();
+
+    // Send new OTP email
+    const emailResult = await sendOTPEmail(user.email, otp);
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again.'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'New verification code sent to your email'
+    });
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while resending OTP'
     });
   }
 });
@@ -88,6 +256,8 @@ router.post('/login', validateLogin, async (req, res) => {
         message: 'Account is deactivated. Please contact support.'
       });
     }
+
+
 
     // Verify password
     const isPasswordValid = await user.comparePassword(password);

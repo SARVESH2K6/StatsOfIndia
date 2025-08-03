@@ -9,6 +9,7 @@ import { Label } from "../components/ui/label"
 import { Checkbox } from "../components/ui/checkbox"
 import { Alert, AlertDescription } from "../components/ui/alert"
 import { Eye, EyeOff, BarChart3, ArrowLeft, CheckCircle } from "lucide-react"
+import OTPVerification from "../components/OTPVerification"
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -26,6 +27,11 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [showOTPVerification, setShowOTPVerification] = useState(false)
+  const [verificationData, setVerificationData] = useState({
+    userId: "",
+    email: ""
+  })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -71,10 +77,11 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (data.success) {
-        setSuccess("Registration successful! Redirecting to login...")
-        setTimeout(() => {
-          navigate('/login')
-        }, 2000)
+        setVerificationData({
+          userId: data.data.userId,
+          email: data.data.email
+        })
+        setShowOTPVerification(true)
       } else {
         setError(data.message || 'Registration failed')
       }
@@ -83,6 +90,34 @@ export default function RegisterPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleVerificationSuccess = (userData: any, token: string) => {
+    // Store user data and token
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(userData))
+    
+    // Redirect to dashboard
+    navigate('/dashboard')
+  }
+
+  const handleBackToRegister = () => {
+    setShowOTPVerification(false)
+    setVerificationData({ userId: "", email: "" })
+    setError("")
+    setSuccess("")
+  }
+
+  // Show OTP verification if needed
+  if (showOTPVerification) {
+    return (
+      <OTPVerification
+        userId={verificationData.userId}
+        email={verificationData.email}
+        onVerificationSuccess={handleVerificationSuccess}
+        onBack={handleBackToRegister}
+      />
+    )
   }
 
   return (

@@ -51,6 +51,7 @@ interface Dataset {
   sourceUrl?: string
   tags: string[]
   files: Array<{
+    _id: string
     fileName: string
     fileType: string
     fileSize: number
@@ -324,8 +325,14 @@ export default function DataPortalPage() {
     }
 
     try {
+      const file = dataset.files[fileIndex]
+      if (!file) {
+        alert('File not found')
+        return
+      }
+
       const token = localStorage.getItem('token')
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${dataset._id}/download/${fileIndex}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${dataset._id}/download/${file._id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -336,7 +343,7 @@ export default function DataPortalPage() {
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = dataset.files[fileIndex].fileName
+        a.download = file.fileName
         document.body.appendChild(a)
         a.click()
         window.URL.revokeObjectURL(url)
@@ -710,10 +717,10 @@ export default function DataPortalPage() {
                           {dataset.category}
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-1 text-sm text-gray-500">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span>{dataset.statistics.rating.average.toFixed(1)}</span>
-                        <span className="text-xs">({dataset.statistics.rating.count})</span>
+                      <div className="flex items-center space-x-1 text-sm text-gray-500 min-w-0">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
+                        <span className="truncate">{dataset.statistics.rating.average.toFixed(1)}</span>
+                        <span className="text-xs truncate">({dataset.statistics.rating.count})</span>
                       </div>
                     </div>
                     <CardTitle className="text-lg">{dataset.title}</CardTitle>
@@ -772,33 +779,37 @@ export default function DataPortalPage() {
                         </div>
                       )}
 
-                      <div className="flex space-x-2 pt-2">
+                      <div className="flex flex-wrap gap-2 pt-2">
                         <Button 
                           variant="outline" 
                           size="sm" 
+                          className="flex-1 min-w-0"
                           onClick={() => handlePreview(dataset)}
                         >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Preview
+                          <Eye className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">Preview</span>
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
+                          className="flex-1 min-w-0"
                           onClick={() => handleViewDetails(dataset)}
                         >
-                          <Info className="w-4 h-4 mr-2" />
-                          Details
+                          <Info className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">Details</span>
                         </Button>
                         <Button 
                           size="sm" 
+                          className="flex-1 min-w-0"
                           onClick={() => handleDownload(dataset)}
                         >
-                          <Download className="w-4 h-4 mr-2" />
-                          Download
+                          <Download className="w-4 h-4 mr-2 flex-shrink-0" />
+                          <span className="truncate">Download</span>
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
+                          className="w-10 h-9 flex-shrink-0"
                           onClick={() => handleBookmark(dataset)}
                         >
                           {bookmarkedDatasets.includes(dataset._id) ? (

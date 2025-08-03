@@ -304,9 +304,9 @@ export default function HomePage() {
                           {dataset.category}
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-1 text-sm text-gray-500">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span>{dataset.statistics.rating.average.toFixed(1)}</span>
+                      <div className="flex items-center space-x-1 text-sm text-gray-500 min-w-0">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
+                        <span className="truncate">{dataset.statistics.rating.average.toFixed(1)}</span>
                       </div>
                     </div>
                     <CardTitle className="text-lg line-clamp-2">{dataset.title}</CardTitle>
