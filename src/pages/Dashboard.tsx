@@ -373,40 +373,40 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-stone-900 dark:via-neutral-800 dark:to-slate-900">
       {/* Navigation Breadcrumb */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <nav className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="hover:text-blue-600">
+        <nav className="flex items-center space-x-2 text-sm text-stone-600 dark:text-stone-400">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="hover:text-amber-600">
             <Home className="w-4 h-4 mr-1" />
             Home
           </Button>
           <ArrowRight className="w-4 h-4" />
-          <span className="text-gray-900 dark:text-gray-100 font-medium">Dashboard</span>
+          <span className="text-stone-900 dark:text-stone-100 font-medium">Dashboard</span>
         </nav>
       </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+          <TabsList className="grid w-full grid-cols-5 bg-stone-100/50 dark:bg-stone-800/50 backdrop-blur-sm">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <Activity className="w-4 h-4 mr-2" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="downloads" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+            <TabsTrigger value="downloads" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <Download className="w-4 h-4 mr-2" />
               Downloads
             </TabsTrigger>
-            <TabsTrigger value="bookmarks" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+            <TabsTrigger value="bookmarks" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <Bookmark className="w-4 h-4 mr-2" />
               Bookmarks
             </TabsTrigger>
-            <TabsTrigger value="searches" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+            <TabsTrigger value="searches" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <Search className="w-4 h-4 mr-2" />
               History
             </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+            <TabsTrigger value="settings" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </TabsTrigger>
@@ -414,77 +414,49 @@ export default function DashboardPage() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            {/* Welcome Section */}
-            <Card className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 text-white border-0 shadow-xl">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <BarChart3 className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-2xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">
-                        StatsOfIndia
-                      </h1>
-                      <p className="text-sm text-muted-foreground">Welcome back, {user?.fullName || 'User'}!</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={handleLogout}
-                      className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Logout
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Downloads</CardTitle>
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                    <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-lg flex items-center justify-center">
+                    <Download className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{downloadHistory.length}</div>
+                  <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">{downloadHistory.length}</div>
                   <p className="text-xs text-muted-foreground">Files downloaded</p>
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Bookmarks</CardTitle>
-                  <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                    <Bookmark className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                    <Bookmark className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{bookmarks.length}</div>
+                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{bookmarks.length}</div>
                   <p className="text-xs text-muted-foreground">Saved datasets</p>
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Search Queries</CardTitle>
-                  <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                    <Search className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                    <Search className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{searchHistory.length}</div>
+                  <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{searchHistory.length}</div>
                   <p className="text-xs text-muted-foreground">Searches performed</p>
                 </CardContent>
               </Card>
 
-              <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Account Status</CardTitle>
                   <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900 rounded-lg flex items-center justify-center">
@@ -500,10 +472,10 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Downloads */}
-              <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg">
+              <Card className="border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2 text-blue-600" />
+                    <Clock className="w-5 h-5 mr-2 text-amber-600" />
                     Recent Downloads
                   </CardTitle>
                   <CardDescription>Your latest file downloads</CardDescription>
@@ -511,14 +483,14 @@ export default function DashboardPage() {
                 <CardContent>
                   {loading ? (
                     <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                      <p className="mt-2 text-sm text-gray-600">Loading...</p>
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
+                      <p className="mt-2 text-sm text-stone-600">Loading...</p>
                     </div>
                   ) : downloadHistory.length === 0 ? (
                     <div className="text-center py-8">
-                      <Download className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">No downloads yet</p>
-                      <Button onClick={() => navigate('/data-portal')} className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
+                      <Download className="w-12 h-12 text-stone-400 mx-auto mb-4" />
+                      <p className="text-stone-600 dark:text-stone-400 mb-4">No downloads yet</p>
+                      <Button onClick={() => navigate('/data-portal')} className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600">
                         <Database className="w-4 h-4 mr-2" />
                         Browse Datasets
                       </Button>
@@ -526,18 +498,18 @@ export default function DashboardPage() {
                   ) : (
                     <div className="space-y-3">
                       {downloadHistory.slice(0, 5).map((download, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <div key={index} className="flex items-center justify-between p-3 bg-stone-50 dark:bg-stone-700/50 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                              <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                            <div className="w-8 h-8 bg-amber-100 dark:bg-amber-900 rounded-lg flex items-center justify-center">
+                              <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                             </div>
                             <div>
                               <p className="font-medium text-sm">{download.fileName}</p>
-                              <p className="text-xs text-gray-500">{download.fileType.toUpperCase()}</p>
+                              <p className="text-xs text-stone-500">{download.fileType.toUpperCase()}</p>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-xs text-gray-500">{formatDate(download.downloadedAt)}</p>
+                            <p className="text-xs text-stone-500">{formatDate(download.downloadedAt)}</p>
                           </div>
                         </div>
                       ))}
@@ -552,10 +524,10 @@ export default function DashboardPage() {
 
           {/* Downloads Tab */}
           <TabsContent value="downloads" className="space-y-6">
-            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg">
+            <Card className="border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Download className="w-5 h-5 mr-2 text-blue-600" />
+                  <Download className="w-5 h-5 mr-2 text-amber-600" />
                   Download History
                 </CardTitle>
                 <CardDescription>All files you've downloaded from our platform</CardDescription>
@@ -563,19 +535,19 @@ export default function DashboardPage() {
               <CardContent>
                 {loading ? (
                   <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-600">Loading your downloads...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
+                    <p className="mt-2 text-sm text-stone-600">Loading your downloads...</p>
                   </div>
                 ) : downloadHistory.length === 0 ? (
                   <div className="text-center py-12">
-                    <Download className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No downloads yet</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    <Download className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-2">No downloads yet</h3>
+                    <p className="text-stone-600 dark:text-stone-400 mb-6 max-w-md mx-auto">
                       Start exploring datasets and downloading files to see them here. Your download history will be automatically tracked.
                     </p>
                     <Button 
                       onClick={() => navigate('/data-portal')}
-                      className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                      className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                     >
                       <Database className="w-4 h-4 mr-2" />
                       Browse Datasets
@@ -584,13 +556,13 @@ export default function DashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {downloadHistory.map((download, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <div key={index} className="flex items-center justify-between p-4 bg-stone-50 dark:bg-stone-700/50 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                            <FileText className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                          <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-lg flex items-center justify-center">
+                            <FileText className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{download.fileName}</p>
+                            <p className="font-medium text-stone-900 dark:text-white">{download.fileName}</p>
                             <div className="flex items-center space-x-2 mt-1">
                               <Badge variant="outline" className="text-xs">
                                 {download.fileType.toUpperCase()}
@@ -604,7 +576,7 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(download.downloadedAt)}</p>
+                          <p className="text-sm text-stone-500 dark:text-stone-400">{formatDate(download.downloadedAt)}</p>
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -625,10 +597,10 @@ export default function DashboardPage() {
 
           {/* Bookmarks Tab */}
           <TabsContent value="bookmarks" className="space-y-6">
-            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg">
+            <Card className="border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Bookmark className="w-5 h-5 mr-2 text-purple-600" />
+                  <Bookmark className="w-5 h-5 mr-2 text-orange-600" />
                   My Bookmarks
                 </CardTitle>
                 <CardDescription>Your saved datasets for quick access</CardDescription>
@@ -636,19 +608,19 @@ export default function DashboardPage() {
               <CardContent>
                 {loading ? (
                   <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-600">Loading your bookmarks...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                    <p className="mt-2 text-sm text-stone-600">Loading your bookmarks...</p>
                   </div>
                 ) : bookmarks.length === 0 ? (
                   <div className="text-center py-12">
-                    <Bookmark className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No bookmarks yet</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    <Bookmark className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-2">No bookmarks yet</h3>
+                    <p className="text-stone-600 dark:text-stone-400 mb-6 max-w-md mx-auto">
                       Start bookmarking datasets you find interesting. They'll appear here for quick access later.
                     </p>
                     <Button 
                       onClick={() => navigate('/data-portal')}
-                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                      className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
                     >
                       <Database className="w-4 h-4 mr-2" />
                       Browse Datasets
@@ -657,13 +629,13 @@ export default function DashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {bookmarks.map((bookmark, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <div key={index} className="flex items-center justify-between p-4 bg-stone-50 dark:bg-stone-700/50 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                          <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
                             {getCategoryIcon(bookmark.category)}
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{bookmark.title}</p>
+                            <p className="font-medium text-stone-900 dark:text-white">{bookmark.title}</p>
                             <div className="flex items-center space-x-2 mt-1">
                               <Badge className={`text-xs ${getCategoryColor(bookmark.category)}`}>
                                 {bookmark.category}
@@ -726,10 +698,10 @@ export default function DashboardPage() {
 
           {/* Search History Tab */}
           <TabsContent value="searches" className="space-y-6">
-            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg">
+            <Card className="border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Search className="w-5 h-5 mr-2 text-green-600" />
+                  <Search className="w-5 h-5 mr-2 text-yellow-600" />
                   Search History
                 </CardTitle>
                 <CardDescription>Your recent search queries and filters</CardDescription>
@@ -737,19 +709,19 @@ export default function DashboardPage() {
               <CardContent>
                 {loading ? (
                   <div className="text-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-600">Loading your search history...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto"></div>
+                    <p className="mt-2 text-sm text-stone-600">Loading your search history...</p>
                   </div>
                 ) : searchHistory.length === 0 ? (
                   <div className="text-center py-12">
-                    <Search className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No search history</h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                    <Search className="w-16 h-16 text-stone-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-stone-900 dark:text-white mb-2">No search history</h3>
+                    <p className="text-stone-600 dark:text-stone-400 mb-6 max-w-md mx-auto">
                       Your search queries will appear here once you start exploring datasets.
                     </p>
                     <Button 
                       onClick={() => navigate('/data-portal')}
-                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                     >
                       <Database className="w-4 h-4 mr-2" />
                       Start Searching
@@ -758,13 +730,13 @@ export default function DashboardPage() {
                 ) : (
                   <div className="space-y-4">
                     {searchHistory.map((search, index) => (
-                      <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <div key={index} className="flex items-center justify-between p-4 bg-stone-50 dark:bg-stone-700/50 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-700 transition-colors">
                         <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                            <Search className="w-6 h-6 text-green-600 dark:text-green-400" />
+                          <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                            <Search className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white">"{search.query}"</p>
+                            <p className="font-medium text-stone-900 dark:text-white">"{search.query}"</p>
                             <div className="flex items-center space-x-2 mt-1">
                               {search.category && (
                                 <Badge className={`text-xs ${getCategoryColor(search.category)}`}>
@@ -785,7 +757,7 @@ export default function DashboardPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{formatDate(search.searchedAt)}</p>
+                          <p className="text-sm text-stone-500 dark:text-stone-400">{formatDate(search.searchedAt)}</p>
                           <Button 
                             variant="outline" 
                             size="sm" 
@@ -806,7 +778,7 @@ export default function DashboardPage() {
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
-            <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg">
+            <Card className="border-0 bg-white/80 dark:bg-stone-800/80 backdrop-blur-sm shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Settings className="w-5 h-5 mr-2 text-orange-600" />
@@ -886,7 +858,7 @@ export default function DashboardPage() {
                       </div>
 
                       {showProfileForm && (
-                        <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="space-y-4 p-4 bg-stone-50 dark:bg-stone-700 rounded-lg">
                           <div>
                             <Label htmlFor="fullName">Full Name</Label>
                             <Input
@@ -916,7 +888,7 @@ export default function DashboardPage() {
                           </div>
                           <Button 
                             onClick={handleUpdateProfile}
-                            className="w-full bg-blue-600 hover:bg-blue-700"
+                            className="w-full bg-amber-600 hover:bg-amber-700"
                           >
                             Update Profile
                           </Button>
@@ -935,7 +907,7 @@ export default function DashboardPage() {
                       </div>
 
                       {showPasswordForm && (
-                        <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <div className="space-y-4 p-4 bg-stone-50 dark:bg-stone-700 rounded-lg">
                           <div>
                             <Label htmlFor="currentPassword">Current Password</Label>
                             <Input

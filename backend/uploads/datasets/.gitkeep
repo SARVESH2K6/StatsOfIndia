@@ -1,1 +1,2 @@
-# This file ensures the directory is tracked by git 
+# This file ensures the uploads/datasets directory is tracked by git
+# while the actual uploaded files are ignored 

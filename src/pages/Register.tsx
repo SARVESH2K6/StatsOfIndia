@@ -136,7 +136,7 @@ export default function RegisterPage() {
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
       const apiUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/register`;
-      console.log('Making registration request to:', apiUrl);
+      // Making registration request
       
       const response = await fetch(apiUrl, {
         method: 'POST',

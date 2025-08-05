@@ -1,38 +1,66 @@
 # StatsOfIndia 📊
 
-A college project for exploring and analyzing statistics across Indian states and union territories. Built with React, TypeScript, Tailwind CSS, Node.js, Express, and MongoDB.
+A comprehensive statistics platform for exploring and analyzing data across Indian states and union territories. Built with modern web technologies to provide an intuitive interface for accessing government statistics and demographic data.
 
-## 🚀 Features
+## 🌟 Features
 
-### Frontend (React + TypeScript)
-- **Modern UI/UX** with Tailwind CSS and Radix UI components
+### 📱 User Interface
+- **Modern Design** with Tailwind CSS and Shadcn UI components
 - **Dark/Light Theme** toggle with persistent preferences
-- **Responsive Design** for all device sizes
-- **Interactive Charts** using Recharts library
-- **Real-time Data** from MongoDB backend
-- **Dynamic Routing** with React Router
-- **Type-safe** with TypeScript
+- **Responsive Design** optimized for all device sizes
+- **Interactive Charts** and data visualizations
+- **Real-time Search** and filtering capabilities
+- **Type-safe** development with TypeScript
 
-### Backend (Node.js + Express + MongoDB)
-- **RESTful API** with comprehensive CRUD operations
-- **MongoDB Integration** with Mongoose ODM
-- **Data Validation** using Joi
-- **Rate Limiting** and security features
-- **Auto-seeding** of sample data
-- **Error Handling** with custom middleware
+### 🔐 Authentication & Security
+- **JWT-based Authentication** with secure token management
+- **Email Verification** with OTP system
+- **Role-based Access Control** (User/Admin)
+- **Password Security** with bcrypt hashing
+- **CORS Protection** and rate limiting
 
-### Data Categories
-- **Demographics** - Population, age distribution, gender ratio
-- **Education** - Literacy rates, school enrollments, higher education
-- **Economy** - GDP growth, per capita income, employment
-- **Health** - Life expectancy, infant mortality, healthcare access
-- **Agriculture** - Crop production, farmer statistics, exports
+### 📊 Data Management
+- **Multi-format Support** (CSV, PDF datasets)
+- **Category-based Organization** (Demographics, Economy, Education, Health, Agriculture)
+- **State-wise Filtering** for all Indian states and territories
+- **Advanced Search** with multiple criteria
+- **Bookmark System** for favorite datasets
+- **Download Tracking** and history
+
+### 🛠️ Admin Features
+- **Dataset Upload** with metadata management
+- **Content Management** for datasets and categories
+- **User Management** and analytics
+- **Data Quality Control** and validation
+- **Bulk Operations** for efficient management
+
+## 🚀 Tech Stack
+
+### Frontend
+- **React 18** with TypeScript
+- **Tailwind CSS** for styling
+- **Shadcn UI** for components
+- **React Router** for navigation
+- **Lucide React** for icons
+
+### Backend
+- **Node.js** with Express.js
+- **MongoDB** with Mongoose ODM
+- **JWT** for authentication
+- **Nodemailer** for email services
+- **Multer** for file uploads
+
+### Development Tools
+- **TypeScript** for type safety
+- **ESLint** for code quality
+- **Prettier** for code formatting
+- **Git** for version control
 
 ## 📋 Prerequisites
 
-- Node.js (v16 or higher)
-- MongoDB (local or cloud)
-- npm or yarn
+- **Node.js** (v16 or higher)
+- **MongoDB** (local or cloud)
+- **npm** or **yarn** package manager
 
 ## 🛠️ Installation & Setup
 
@@ -49,6 +77,15 @@ npm install
 cp env.example .env
 ```
 
+Configure your `.env` file:
+```env
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/stats-of-india
+JWT_SECRET=your-secret-key
+GMAIL_APP_PASSWORD=your-gmail-app-password
+FRONTEND_URL=http://localhost:3000
+```
+
 ### 3. Frontend Setup
 ```bash
 cd ..
@@ -60,68 +97,153 @@ Install MongoDB locally or use MongoDB Atlas cloud service.
 
 ## 🚀 Running the Application
 
-### Start Backend
+### Development Mode
+
+**Start Backend:**
 ```bash
 cd backend
 npm run dev
 ```
 
-### Start Frontend
+**Start Frontend:**
 ```bash
 npm start
 ```
 
 The application will be available at:
-- Frontend: http://localhost:3000
-- Backend: http://localhost:5000
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:5000
+- **Health Check**: http://localhost:5000/health
 
-## 📊 API Endpoints
+### Production Mode
+
+**Build Frontend:**
+```bash
+npm run build
+```
+
+**Start Production Server:**
+```bash
+cd backend
+npm start
+```
+
+## 📊 API Documentation
 
 ### Base URL: `http://localhost:5000/api`
 
-#### Authentication
-- `POST /auth/register` - Register a new user
-- `POST /auth/login` - Login user
-- `GET /auth/me` - Get current user (Protected)
+### Authentication Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auth/register` | Register new user |
+| `POST` | `/auth/login` | User login |
+| `POST` | `/auth/verify-otp` | Verify email OTP |
+| `GET` | `/auth/me` | Get current user (Protected) |
+| `PUT` | `/auth/profile` | Update user profile (Protected) |
+| `PUT` | `/auth/change-password` | Change password (Protected) |
 
-#### Datasets
-- `GET /datasets` - Get all datasets
-- `GET /datasets/:id` - Get dataset by ID
-- `POST /datasets` - Create new dataset (Protected)
-- `DELETE /datasets/:id` - Delete dataset (Protected)
-- `GET /datasets/categories/:category` - Get datasets by category
-- `GET /datasets/states/:state` - Get datasets by state
-- `GET /datasets/popular` - Get popular datasets
-- `GET /datasets/recent` - Get recent datasets
-- `GET /datasets/search` - Search datasets
-- `GET /datasets/:id/download/:fileId` - Download dataset file
-- `POST /datasets/upload` - Upload dataset file (Protected)
+### Dataset Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/datasets` | Get all datasets |
+| `GET` | `/datasets/:id` | Get dataset by ID |
+| `POST` | `/datasets/upload` | Upload dataset (Protected) |
+| `DELETE` | `/datasets/:id` | Delete dataset (Protected) |
+| `GET` | `/datasets/categories/:category` | Get by category |
+| `GET` | `/datasets/states/:state` | Get by state |
+| `GET` | `/datasets/search` | Search datasets |
+| `GET` | `/datasets/:id/download/:fileId` | Download file |
+
+### User Management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/datasets/:id/bookmark` | Add bookmark (Protected) |
+| `DELETE` | `/datasets/:id/bookmark` | Remove bookmark (Protected) |
+| `GET` | `/users/downloads` | Get download history (Protected) |
+| `GET` | `/users/searches` | Get search history (Protected) |
 
 ## 🗃️ Database Schema
 
-The project uses MongoDB with the following main collections:
-- **Users**: User authentication and profiles
-- **Datasets**: Statistical data files and metadata
+### Users Collection
+```javascript
+{
+  _id: ObjectId,
+  email: String,
+  fullName: String,
+  phone: String,
+  organization: String,
+  role: String, // 'user' or 'admin'
+  isVerified: Boolean,
+  preferences: {
+    dataCategories: [String]
+  },
+  bookmarks: [ObjectId],
+  downloadHistory: [ObjectId],
+  searchHistory: [ObjectId],
+  createdAt: Date,
+  updatedAt: Date
+}
+```
 
-## 🎨 Frontend Components
+### Datasets Collection
+```javascript
+{
+  _id: ObjectId,
+  title: String,
+  description: String,
+  category: String,
+  state: String,
+  year: Number,
+  source: String,
+  sourceUrl: String,
+  tags: [String],
+  files: [{
+    fileName: String,
+    fileType: String,
+    fileSize: Number,
+    downloadCount: Number
+  }],
+  statistics: {
+    downloadCount: Number,
+    viewCount: Number,
+    rating: {
+      average: Number,
+      count: Number
+    }
+  },
+  isPublic: Boolean,
+  isActive: Boolean,
+  uploadedBy: ObjectId,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## 🎨 Frontend Architecture
 
 ### Pages
-- **Home** - Landing page with overview
-- **Data Portal** - Browse and download datasets
-- **Admin Dashboard** - Admin panel for data management
+- **Home** - Landing page with overview and navigation
+- **Data Portal** - Browse, search, and download datasets
+- **Dashboard** - User profile, history, and preferences
+- **Admin Dashboard** - Dataset and user management
+- **Login/Register** - Authentication pages
 
-### Features
-- **User Authentication** - Login/Register system
-- **File Upload** - Upload CSV/PDF datasets
-- **Data Management** - Admin dashboard for managing datasets
-- **Responsive Design** - Works on all devices
+### Components
+- **Navigation** - Header with theme toggle and user menu
+- **Dataset Cards** - Display dataset information
+- **Search Filters** - Advanced search functionality
+- **Upload Form** - Dataset upload interface
+- **Charts** - Data visualization components
 
 ## 🛡️ Security Features
 
-- **CORS** - Cross-origin resource sharing
-- **Rate Limiting** - API request limiting
-- **Input Validation** - Request data validation
-- **JWT Authentication** - Secure user authentication
+- **JWT Authentication** with secure token storage
+- **Password Hashing** using bcrypt
+- **Input Validation** with Joi schemas
+- **CORS Protection** for cross-origin requests
+- **Rate Limiting** to prevent abuse
+- **File Upload Security** with type and size validation
+- **Email Verification** with OTP system
 
 ## 🧪 Testing
 
@@ -132,20 +254,65 @@ npm test
 
 # Frontend tests
 npm test
+
+# E2E tests (if configured)
+npm run test:e2e
 ```
+
+## 📦 Deployment
+
+### Environment Variables
+Set the following environment variables for production:
+
+```env
+NODE_ENV=production
+PORT=5000
+MONGODB_URI=your-mongodb-connection-string
+JWT_SECRET=your-secure-jwt-secret
+GMAIL_APP_PASSWORD=your-gmail-app-password
+FRONTEND_URL=https://your-domain.com
+CORS_ORIGIN=https://your-domain.com
+```
+
+### Build Commands
+```bash
+# Build frontend
+npm run build
+
+# Start production server
+cd backend
+npm start
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **Data Sources** - Government of India statistics
-- **Icons** - Lucide React
-- **UI Components** - Radix UI
-- **Charts** - Recharts
-- **Styling** - Tailwind CSS
+- **Data Sources** - Government of India statistics and datasets
+- **Icons** - Lucide React icon library
+- **UI Components** - Shadcn UI component library
+- **Styling** - Tailwind CSS framework
+- **Charts** - Recharts library for data visualization
+
+## 📞 Support
+
+For support and questions:
+- Create an issue in the GitHub repository
+- Contact the development team
+- Check the documentation in the `/docs` folder
 
 ---
 
-**Made with ❤️ for India's Statistics** 
+**Made with ❤️ for India's Statistics**
+
+*Empowering data-driven decisions through accessible statistics* 

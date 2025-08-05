@@ -37,8 +37,7 @@ router.post('/register', validateRegistration, async (req, res) => {
     }
 
     // TEMPORARY: Log OTP for testing (remove in production)
-    console.log(`🔢 OTP for ${email}: ${otp}`);
-    console.log(`📧 Email sent: ${emailResult.messageId}`);
+    // OTP sent successfully
 
     // Create temporary user data (not saved to database yet)
     const tempUserData = {

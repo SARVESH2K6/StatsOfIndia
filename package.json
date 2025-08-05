@@ -1,12 +1,35 @@
 {
   "name": "stats-of-india",
   "version": "1.0.0",
+  "description": "A comprehensive statistics platform for exploring and analyzing data across Indian states and union territories",
   "private": true,
+  "author": "StatsOfIndia Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/StatsOfIndia.git"
+  },
+  "keywords": [
+    "statistics",
+    "india",
+    "data",
+    "react",
+    "typescript",
+    "nodejs",
+    "mongodb",
+    "dashboard"
+  ],
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "react-scripts start",
+    "install-all": "npm install && cd backend && npm install",
+    "build-all": "npm run build && cd backend && npm run build",
+    "clean": "rm -rf node_modules build && cd backend && rm -rf node_modules"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -66,6 +89,7 @@
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
     "postcss": "^8.5.6",
     "react-scripts": "^5.0.1",
     "tailwindcss": "^3.4.17",
@@ -82,5 +106,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   }
 }

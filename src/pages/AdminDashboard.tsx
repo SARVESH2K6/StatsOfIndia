@@ -79,33 +79,29 @@ export default function AdminDashboardPage() {
     year: new Date().getFullYear(),
     source: "",
     sourceUrl: "",
-    tags: "",
-    isPublic: true
+    tags: ""
   })
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   useEffect(() => {
-    console.log('Admin Dashboard: Checking authentication...')
+    // Checking authentication...
     const token = localStorage.getItem("token")
     const userStr = localStorage.getItem("user")
-    
-    console.log('Admin Dashboard: Token exists:', !!token)
-    console.log('Admin Dashboard: User data exists:', !!userStr)
 
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr)
-        console.log('Admin Dashboard: User data:', user)
+        // User data retrieved
         
         if (user.role === 'admin') {
           setIsAuthenticated(true)
           setIsAdmin(true)
           setUserEmail(user.email)
           setUserName(user.fullName || user.email)
-          console.log('Admin Dashboard: Admin authentication successful')
+          // Admin authentication successful
           fetchDatasets()
         } else {
-          console.log('Admin Dashboard: User is not admin, redirecting to dashboard')
+          // User is not admin, redirecting to dashboard
           navigate("/dashboard")
         }
       } catch (error) {
@@ -113,7 +109,7 @@ export default function AdminDashboardPage() {
         navigate("/login")
       }
     } else {
-      console.log('Admin Dashboard: No token or user data, redirecting to login')
+              // No token or user data, redirecting to login
       navigate("/login")
     }
   }, [navigate])
@@ -171,7 +167,6 @@ export default function AdminDashboardPage() {
       formData.append('source', uploadForm.source)
       formData.append('sourceUrl', uploadForm.sourceUrl)
       formData.append('tags', uploadForm.tags)
-      formData.append('isPublic', uploadForm.isPublic.toString())
 
       const token = localStorage.getItem('token')
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/upload`, {
@@ -194,8 +189,7 @@ export default function AdminDashboardPage() {
           year: new Date().getFullYear(),
           source: "",
           sourceUrl: "",
-          tags: "",
-          isPublic: true
+          tags: ""
         })
         setSelectedFile(null)
         fetchDatasets() // Refresh the list
@@ -253,86 +247,94 @@ export default function AdminDashboardPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-stone-900 dark:via-neutral-800 dark:to-slate-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-20 left-10 w-20 h-20 bg-amber-400/20 rounded-full animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 bg-orange-400/15 rounded-full animate-bounce"></div>
+        <div className="absolute bottom-20 left-1/4 w-16 h-16 bg-yellow-400/20 rounded-full animate-ping"></div>
+        <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-amber-300/10 rounded-full animate-spin"></div>
+        <div className="absolute bottom-40 right-1/3 w-28 h-28 bg-orange-300/15 rounded-full animate-pulse"></div>
+      </div>
 
+      {/* Header */}
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="upload">Upload Data</TabsTrigger>
-            <TabsTrigger value="manage">Manage Datasets</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 bg-stone-100/50 dark:bg-stone-800/50 backdrop-blur-md">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">Overview</TabsTrigger>
+            <TabsTrigger value="upload" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">Upload Data</TabsTrigger>
+            <TabsTrigger value="manage" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white">Manage Datasets</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
+              <Card className="bg-white/20 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-fade-in-up">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Datasets</CardTitle>
-                  <Database className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-stone-900 dark:text-stone-100">Total Datasets</CardTitle>
+                  <Database className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{datasets.length}</div>
-                  <p className="text-xs text-muted-foreground">Available datasets</p>
+                  <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">{datasets.length}</div>
+                  <p className="text-xs text-stone-600 dark:text-stone-400">Available datasets</p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white/20 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-stone-900 dark:text-stone-100">Active Users</CardTitle>
+                  <Users className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">1,234</div>
-                  <p className="text-xs text-muted-foreground">Registered users</p>
+                  <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">1,234</div>
+                  <p className="text-xs text-stone-600 dark:text-stone-400">Registered users</p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white/20 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Downloads</CardTitle>
-                  <Download className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-stone-900 dark:text-stone-100">Total Downloads</CardTitle>
+                  <Download className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">
                     {datasets.reduce((sum, dataset) => sum + dataset.statistics.downloadCount, 0)}
                   </div>
-                  <p className="text-xs text-muted-foreground">Dataset downloads</p>
+                  <p className="text-xs text-stone-600 dark:text-stone-400">Dataset downloads</p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white/20 backdrop-blur-md border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Data Categories</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-stone-900 dark:text-stone-100">Data Categories</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{dataCategories.length}</div>
-                  <p className="text-xs text-muted-foreground">Available categories</p>
+                  <div className="text-2xl font-bold text-stone-900 dark:text-stone-100">{dataCategories.length}</div>
+                  <p className="text-xs text-stone-600 dark:text-stone-400">Available categories</p>
                 </CardContent>
               </Card>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
+              <Card className="bg-white/20 backdrop-blur-md border-0 shadow-lg animate-slide-up">
                 <CardHeader>
-                  <CardTitle>Recent Uploads</CardTitle>
-                  <CardDescription>Latest datasets added to the system</CardDescription>
+                  <CardTitle className="text-stone-900 dark:text-stone-100">Recent Uploads</CardTitle>
+                  <CardDescription className="text-stone-600 dark:text-stone-400">Latest datasets added to the system</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {loading ? (
-                    <div className="text-center py-4">Loading...</div>
+                    <div className="text-center py-4 text-stone-600 dark:text-stone-400">Loading...</div>
                   ) : (
                     <div className="space-y-4">
                       {datasets.slice(0, 5).map((dataset) => (
-                        <div key={dataset._id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div key={dataset._id} className="flex items-center justify-between p-3 border border-stone-200 dark:border-stone-700 rounded-lg bg-white/30 backdrop-blur-sm">
                           <div>
-                            <h4 className="font-medium">{dataset.title}</h4>
-                            <p className="text-sm text-gray-500">{dataset.category}</p>
+                            <h4 className="font-medium text-stone-900 dark:text-stone-100">{dataset.title}</h4>
+                            <p className="text-sm text-stone-600 dark:text-stone-400">{dataset.category}</p>
                           </div>
-                          <Badge variant="outline">{dataset.dataQuality}</Badge>
+                          <Badge variant="outline" className="border-amber-200 text-amber-800 dark:border-amber-700 dark:text-amber-200">{dataset.dataQuality}</Badge>
                         </div>
                       ))}
                     </div>
@@ -340,26 +342,22 @@ export default function AdminDashboardPage() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="bg-white/20 backdrop-blur-md border-0 shadow-lg animate-slide-up" style={{ animationDelay: '0.2s' }}>
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                  <CardDescription>Common administrative tasks</CardDescription>
+                  <CardTitle className="text-stone-900 dark:text-stone-100">Quick Actions</CardTitle>
+                  <CardDescription className="text-stone-600 dark:text-stone-400">Common administrative tasks</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4">
-                    <Button onClick={() => navigate('/admin/upload')} className="h-20">
+                    <Button onClick={() => navigate('/admin/upload')} className="h-20 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700">
                       <Upload className="w-5 h-5 mr-2" />
                       Upload Dataset
                     </Button>
-                    <Button variant="outline" onClick={() => navigate('/data-portal')} className="h-20">
+                    <Button variant="outline" onClick={() => navigate('/data-portal')} className="h-20 border-amber-200 hover:bg-amber-50 dark:border-amber-700 dark:hover:bg-amber-900/20">
                       <Eye className="w-5 h-5 mr-2" />
                       View Portal
                     </Button>
-                    <Button variant="outline" className="h-20">
-                      <Users className="w-5 h-5 mr-2" />
-                      Manage Users
-                    </Button>
-                    <Button variant="outline" className="h-20">
+                    <Button variant="outline" className="h-20 border-amber-200 hover:bg-amber-50 dark:border-amber-700 dark:hover:bg-amber-900/20">
                       <Settings className="w-5 h-5 mr-2" />
                       Settings
                     </Button>
@@ -371,10 +369,10 @@ export default function AdminDashboardPage() {
 
           {/* Upload Tab */}
           <TabsContent value="upload" className="space-y-6">
-            <Card>
+            <Card className="bg-white/20 backdrop-blur-md border-0 shadow-2xl animate-fade-in-up">
               <CardHeader>
-                <CardTitle>Upload New Dataset</CardTitle>
-                <CardDescription>Add new CSV or PDF files to the database</CardDescription>
+                <CardTitle className="text-stone-900 dark:text-stone-100">Upload New Dataset</CardTitle>
+                <CardDescription className="text-stone-600 dark:text-stone-400">Add new CSV or PDF files to the database</CardDescription>
               </CardHeader>
               <CardContent>
                 {error && (
@@ -396,7 +394,7 @@ export default function AdminDashboardPage() {
                 <form onSubmit={handleUpload} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="title">Dataset Title *</Label>
+                      <Label htmlFor="title" className="text-stone-700 dark:text-stone-300">Dataset Title *</Label>
                       <Input
                         id="title"
                         name="title"
@@ -404,17 +402,18 @@ export default function AdminDashboardPage() {
                         onChange={handleUploadFormChange}
                         placeholder="Enter dataset title"
                         required
+                        className="border-stone-300 focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="category">Category *</Label>
+                      <Label htmlFor="category" className="text-stone-700 dark:text-stone-300">Category *</Label>
                       <select
                         id="category"
                         name="category"
                         value={uploadForm.category}
                         onChange={handleUploadFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
                         required
                       >
                         <option value="">Select category</option>
@@ -427,13 +426,13 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="state">State/Region</Label>
+                      <Label htmlFor="state" className="text-stone-700 dark:text-stone-300">State/Region</Label>
                       <select
                         id="state"
                         name="state"
                         value={uploadForm.state}
                         onChange={handleUploadFormChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
                       >
                         <option value="all-india">All India</option>
                         <option value="andhra-pradesh">Andhra Pradesh</option>
@@ -477,7 +476,7 @@ export default function AdminDashboardPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="year">Year</Label>
+                      <Label htmlFor="year" className="text-stone-700 dark:text-stone-300">Year</Label>
                       <Input
                         id="year"
                         name="year"
@@ -486,22 +485,24 @@ export default function AdminDashboardPage() {
                         onChange={handleUploadFormChange}
                         min="1900"
                         max={new Date().getFullYear() + 1}
+                        className="border-stone-300 focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="source">Data Source</Label>
+                      <Label htmlFor="source" className="text-stone-700 dark:text-stone-300">Data Source</Label>
                       <Input
                         id="source"
                         name="source"
                         value={uploadForm.source}
                         onChange={handleUploadFormChange}
                         placeholder="e.g., Government of India"
+                        className="border-stone-300 focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="sourceUrl">Source URL</Label>
+                      <Label htmlFor="sourceUrl" className="text-stone-700 dark:text-stone-300">Source URL</Label>
                       <Input
                         id="sourceUrl"
                         name="sourceUrl"
@@ -509,61 +510,52 @@ export default function AdminDashboardPage() {
                         value={uploadForm.sourceUrl}
                         onChange={handleUploadFormChange}
                         placeholder="https://..."
+                        className="border-stone-300 focus:border-amber-500 focus:ring-amber-500"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description" className="text-stone-700 dark:text-stone-300">Description</Label>
                     <textarea
                       id="description"
                       name="description"
                       value={uploadForm.description}
                       onChange={handleUploadFormChange}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-stone-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 dark:border-stone-600 dark:bg-stone-800 dark:text-stone-100"
                       placeholder="Describe the dataset content..."
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="tags">Tags (comma-separated)</Label>
+                    <Label htmlFor="tags" className="text-stone-700 dark:text-stone-300">Tags (comma-separated)</Label>
                     <Input
                       id="tags"
                       name="tags"
                       value={uploadForm.tags}
                       onChange={handleUploadFormChange}
                       placeholder="e.g., population, census, demographics"
+                      className="border-stone-300 focus:border-amber-500 focus:ring-amber-500"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="file">Select File *</Label>
+                    <Label htmlFor="file" className="text-stone-700 dark:text-stone-300">Select File *</Label>
                     <Input
                       id="file"
                       type="file"
                       accept=".csv,.pdf"
                       onChange={handleFileChange}
                       required
+                      className="border-stone-300 focus:border-amber-500 focus:ring-amber-500"
                     />
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-stone-600 dark:text-stone-400">
                       Supported formats: CSV, PDF (Max size: 50MB)
                     </p>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <input
-                      id="isPublic"
-                      name="isPublic"
-                      type="checkbox"
-                      checked={uploadForm.isPublic}
-                      onChange={(e) => setUploadForm({...uploadForm, isPublic: e.target.checked})}
-                      className="rounded"
-                    />
-                    <Label htmlFor="isPublic">Make dataset publicly available</Label>
-                  </div>
-
-                  <Button type="submit" disabled={uploading} className="w-full">
+                  <Button type="submit" disabled={uploading} className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700">
                     {uploading ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -583,50 +575,50 @@ export default function AdminDashboardPage() {
 
           {/* Manage Datasets Tab */}
           <TabsContent value="manage" className="space-y-6">
-            <Card>
+            <Card className="bg-white/20 backdrop-blur-md border-0 shadow-2xl animate-fade-in-up">
               <CardHeader>
-                <CardTitle>Manage Datasets</CardTitle>
-                <CardDescription>View, edit, and delete datasets</CardDescription>
+                <CardTitle className="text-stone-900 dark:text-stone-100">Manage Datasets</CardTitle>
+                <CardDescription className="text-stone-600 dark:text-stone-400">View, edit, and delete datasets</CardDescription>
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <div className="text-center py-8">Loading datasets...</div>
+                  <div className="text-center py-8 text-stone-600 dark:text-stone-400">Loading datasets...</div>
                 ) : (
                   <div className="space-y-4">
-                    {datasets.map((dataset) => (
-                      <div key={dataset._id} className="border rounded-lg p-4">
+                    {datasets.map((dataset, index) => (
+                      <div key={dataset._id} className="border border-stone-200 dark:border-stone-700 rounded-lg p-4 bg-white/30 backdrop-blur-sm hover:bg-white/40 transition-all duration-300 animate-fade-in-up" style={{ animationDelay: `${index * 0.1}s` }}>
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-lg">{dataset.title}</h3>
-                            <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                            <h3 className="font-semibold text-lg text-stone-900 dark:text-stone-100">{dataset.title}</h3>
+                            <p className="text-stone-600 dark:text-stone-400 text-sm mt-1">
                               {dataset.description}
                             </p>
                             <div className="flex items-center space-x-4 mt-2">
-                              <Badge variant="outline">{dataset.category}</Badge>
-                              <Badge variant="outline">{dataset.state}</Badge>
-                              <Badge variant="outline">{dataset.year}</Badge>
-                              <Badge variant={dataset.isPublic ? "default" : "secondary"}>
+                              <Badge variant="outline" className="border-amber-200 text-amber-800 dark:border-amber-700 dark:text-amber-200">{dataset.category}</Badge>
+                              <Badge variant="outline" className="border-stone-200 text-stone-800 dark:border-stone-700 dark:text-stone-200">{dataset.state}</Badge>
+                              <Badge variant="outline" className="border-stone-200 text-stone-800 dark:border-stone-700 dark:text-stone-200">{dataset.year}</Badge>
+                              <Badge variant={dataset.isPublic ? "default" : "secondary"} className={dataset.isPublic ? "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200" : ""}>
                                 {dataset.isPublic ? "Public" : "Private"}
                               </Badge>
                             </div>
-                            <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                            <div className="flex items-center space-x-4 mt-2 text-sm text-stone-600 dark:text-stone-400">
                               <span>Downloads: {dataset.statistics.downloadCount}</span>
                               <span>Views: {dataset.statistics.viewCount}</span>
                               <span>Files: {dataset.files.length}</span>
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" className="border-amber-200 hover:bg-amber-50 dark:border-amber-700 dark:hover:bg-amber-900/20">
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" className="border-amber-200 hover:bg-amber-50 dark:border-amber-700 dark:hover:bg-amber-900/20">
                               <Settings className="w-4 h-4" />
                             </Button>
                             <Button 
                               variant="outline" 
                               size="sm" 
                               onClick={() => handleDeleteDataset(dataset._id)}
-                              className="text-red-600 hover:text-red-700"
+                              className="text-red-600 hover:text-red-700 border-red-200 hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -638,37 +630,6 @@ export default function AdminDashboardPage() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Download Analytics</CardTitle>
-                  <CardDescription>Dataset download statistics</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Analytics dashboard coming soon...</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>User Activity</CardTitle>
-                  <CardDescription>User engagement metrics</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">User activity tracking coming soon...</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </main>

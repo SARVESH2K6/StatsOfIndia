@@ -29,12 +29,7 @@ const createTestAccount = async () => {
     // Fallback to console logging for development
     return {
       sendMail: async (options) => {
-        console.log('📧 Email would be sent:', {
-          to: options.to,
-          subject: options.subject,
-          text: options.text,
-          html: options.html
-        });
+        // Email would be sent in production
         return { messageId: 'console-log' };
       }
     };
@@ -98,7 +93,7 @@ const sendOTPEmail = async (email, otp) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('📧 OTP email sent successfully:', result.messageId);
+    // OTP email sent successfully
     return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('❌ Error sending OTP email:', error);
@@ -160,7 +155,7 @@ const sendWelcomeEmail = async (email, fullName) => {
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('📧 Welcome email sent successfully:', result.messageId);
+    // Welcome email sent successfully
     return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error('❌ Error sending welcome email:', error);

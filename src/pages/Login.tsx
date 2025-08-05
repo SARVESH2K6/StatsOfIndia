@@ -45,15 +45,14 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
       })
 
       const data = await response.json()
-      console.log('Login response:', data)
+              // Login successful
 
       if (data.success) {
         // Store token and user data
         localStorage.setItem('token', data.data.token)
         localStorage.setItem('user', JSON.stringify(data.data.user))
         
-        console.log('Stored token:', data.data.token)
-        console.log('Stored user:', data.data.user)
+                  // User data stored successfully
         
         // Update parent component state
         if (onLoginSuccess) {
@@ -61,7 +60,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         }
         
         // Redirect based on user role
-        console.log('Redirecting based on role...')
+        // Redirecting based on role
         if (data.data.user.role === 'admin') {
           navigate('/admin')
         } else {
@@ -188,22 +187,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                   Create one here
                 </Link>
               </p>
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-stone-200 dark:border-stone-700">
-              <div className="text-center">
-                <p className="text-xs text-stone-500 dark:text-stone-400 mb-2">
-                  Demo Account
-                </p>
-                <div className="bg-stone-50 dark:bg-stone-800 rounded-lg p-3 text-xs">
-                  <p className="text-stone-600 dark:text-stone-400">
-                    <strong>Email:</strong> admin@statsofindia.com
-                  </p>
-                  <p className="text-stone-600 dark:text-stone-400">
-                    <strong>Password:</strong> admin123
-                  </p>
-                </div>
-              </div>
             </div>
           </CardContent>
         </Card>
