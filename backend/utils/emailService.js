@@ -1,10 +1,21 @@
 const nodemailer = require('nodemailer');
 
-// Create a test account for development (you can replace with real SMTP settings)
+// Create Gmail transporter for production
+const createGmailTransporter = () => {
+  return nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'freesarvesh@gmail.com',
+      pass: process.env.GMAIL_APP_PASSWORD // Use app password from environment variable
+    }
+  });
+};
+
+// Create a test account for development (fallback)
 const createTestAccount = async () => {
   try {
     const testAccount = await nodemailer.createTestAccount();
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
       secure: false,
@@ -38,13 +49,16 @@ const generateOTP = () => {
 // Send OTP email
 const sendOTPEmail = async (email, otp) => {
   try {
-    const transporter = await createTestAccount();
+    // Use Gmail if app password is configured, otherwise use test account
+    const transporter = process.env.GMAIL_APP_PASSWORD 
+      ? createGmailTransporter() 
+      : await createTestAccount();
     
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@statsofindia.com',
+      from: 'freesarvesh@gmail.com',
       to: email,
       subject: 'Email Verification - StatsOfIndia',
-      text: `Your verification code is: ${otp}\n\nThis code will expire in 10 minutes.`,
+      text: `Your verification code is: ${otp}\n\nThis code will expire in 3 minutes.`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
@@ -66,7 +80,7 @@ const sendOTPEmail = async (email, otp) => {
             </div>
             
             <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
-              This verification code will expire in <strong>10 minutes</strong>. If you didn't request this code, please ignore this email.
+              This verification code will expire in <strong>3 minutes</strong>. If you didn't request this code, please ignore this email.
             </p>
             
             <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 25px 0;">
@@ -95,10 +109,13 @@ const sendOTPEmail = async (email, otp) => {
 // Send welcome email
 const sendWelcomeEmail = async (email, fullName) => {
   try {
-    const transporter = await createTestAccount();
+    // Use Gmail if app password is configured, otherwise use test account
+    const transporter = process.env.GMAIL_APP_PASSWORD 
+      ? createGmailTransporter() 
+      : await createTestAccount();
     
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@statsofindia.com',
+      from: 'freesarvesh@gmail.com',
       to: email,
       subject: 'Welcome to StatsOfIndia!',
       text: `Welcome ${fullName}!\n\nThank you for joining StatsOfIndia. Your account has been successfully verified and activated.`,

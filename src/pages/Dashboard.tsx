@@ -24,7 +24,6 @@ import {
   Bookmark,
   History,
   Bell,
-  Palette,
   Shield,
   Database,
   TrendingUp,
@@ -38,10 +37,8 @@ import {
   Clock,
   Activity,
   Award,
-  Target,
-  Zap
+  Target
 } from "lucide-react"
-import { ThemeToggle } from "../components/theme-toggle"
 
 interface DownloadHistory {
   datasetId: string
@@ -63,12 +60,19 @@ interface SearchHistory {
 }
 
 interface UserPreferences {
-  theme: 'light' | 'dark' | 'auto'
-  notifications: {
-    email: boolean
-    push: boolean
-  }
   dataCategories: string[]
+}
+
+interface ProfileFormData {
+  fullName: string
+  phone: string
+  organization: string
+}
+
+interface PasswordFormData {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
 }
 
 export default function DashboardPage() {
@@ -82,13 +86,20 @@ export default function DashboardPage() {
   const [searchHistory, setSearchHistory] = useState<SearchHistory[]>([])
   const [bookmarks, setBookmarks] = useState<any[]>([])
   const [preferences, setPreferences] = useState<UserPreferences>({
-    theme: 'auto',
-    notifications: {
-      email: true,
-      push: false
-    },
     dataCategories: []
   })
+  const [profileForm, setProfileForm] = useState<ProfileFormData>({
+    fullName: '',
+    phone: '',
+    organization: ''
+  })
+  const [passwordForm, setPasswordForm] = useState<PasswordFormData>({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [showProfileForm, setShowProfileForm] = useState(false)
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
 
   const dataCategories = [
     { id: "demographics", name: "Demographics", icon: User, color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" },
@@ -100,56 +111,110 @@ export default function DashboardPage() {
   ]
 
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    const userStr = localStorage.getItem("user")
-    
-    if (token && userStr) {
-      try {
-        const userData = JSON.parse(userStr)
-        setUser(userData)
-        setIsAuthenticated(true)
-        fetchUserData()
-      } catch (error) {
-        console.error("Error parsing user data:", error)
-        navigate("/login")
-      }
-    } else {
-      navigate("/login")
+    fetchUserData()
+  }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated && !loading) {
+      navigate('/login')
     }
-  }, [navigate])
+  }, [isAuthenticated, loading, navigate])
 
   const fetchUserData = async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
+      
       if (!token) {
-        setError('No authentication token found')
+        setIsAuthenticated(false)
+        setLoading(false)
+        navigate('/login')
         return
       }
 
+      // First, try to get user data from localStorage
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr)
+          setUser(userData)
+          setIsAuthenticated(true)
+          
+          // Load user preferences from localStorage or set defaults
+          setPreferences({
+            dataCategories: userData.preferences?.dataCategories || []
+          })
+          
+          // Populate profile form
+          setProfileForm({
+            fullName: userData.fullName || '',
+            phone: userData.phone || '',
+            organization: userData.organization || ''
+          })
+          
+          // Load download history, search history, and bookmarks
+          setDownloadHistory(userData.downloadHistory || [])
+          setSearchHistory(userData.searchHistory || [])
+          setBookmarks(userData.bookmarks || [])
+          
+          setLoading(false)
+          return
+        } catch (error) {
+          console.error('Error parsing user data from localStorage:', error)
+        }
+      }
+
+      // If no localStorage data, try API call
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
-      
+
       const data = await response.json()
+      
       if (data.success) {
+        setUser(data.data.user)
+        setIsAuthenticated(true)
+        
+        // Load user preferences
+        if (data.data.preferences) {
+          setPreferences({
+            dataCategories: data.data.preferences.dataCategories || []
+          })
+        }
+        
+        // Populate profile form
+        setProfileForm({
+          fullName: data.data.user.fullName || '',
+          phone: data.data.user.phone || '',
+          organization: data.data.user.organization || ''
+        })
+        
+        // Load download history, search history, and bookmarks
         setDownloadHistory(data.data.downloadHistory || [])
         setSearchHistory(data.data.searchHistory || [])
         setBookmarks(data.data.bookmarks || [])
-        setPreferences(data.data.preferences || preferences)
+        
+        // Update localStorage with fresh data
+        localStorage.setItem('user', JSON.stringify({
+          ...data.data.user,
+          preferences: data.data.preferences,
+          downloadHistory: data.data.downloadHistory,
+          searchHistory: data.data.searchHistory,
+          bookmarks: data.data.bookmarks
+        }))
       } else {
-        setError('Failed to fetch user data')
-        // If auth fails, redirect to login
-        if (response.status === 401) {
-          navigate('/login')
-        }
+        setIsAuthenticated(false)
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        navigate('/login')
       }
     } catch (error) {
       console.error('Error fetching user data:', error)
-      setError('Failed to fetch user data')
-      // If network error, redirect to login
+      setIsAuthenticated(false)
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
       navigate('/login')
     } finally {
       setLoading(false)
@@ -164,6 +229,9 @@ export default function DashboardPage() {
 
   const handleUpdatePreferences = async () => {
     try {
+      setError("")
+      setSuccess("")
+      
       const token = localStorage.getItem('token')
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/preferences`, {
         method: 'PUT',
@@ -173,15 +241,98 @@ export default function DashboardPage() {
         },
         body: JSON.stringify(preferences)
       })
-      
+
       const data = await response.json()
+      
       if (data.success) {
         setSuccess('Preferences updated successfully!')
+        setTimeout(() => setSuccess(""), 3000)
       } else {
         setError(data.message || 'Failed to update preferences')
       }
     } catch (error) {
       setError('Failed to update preferences')
+    }
+  }
+
+  const handleUpdateProfile = async () => {
+    try {
+      setError("")
+      setSuccess("")
+      
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(profileForm)
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setSuccess('Profile updated successfully!')
+        setShowProfileForm(false)
+        // Update local user data
+        if (data.data?.user) {
+          localStorage.setItem('user', JSON.stringify(data.data.user))
+          setUser(data.data.user)
+        }
+        setTimeout(() => setSuccess(""), 3000)
+      } else {
+        setError(data.message || 'Failed to update profile')
+      }
+    } catch (error) {
+      setError('Failed to update profile')
+    }
+  }
+
+  const handleChangePassword = async () => {
+    try {
+      setError("")
+      setSuccess("")
+      
+      if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+        setError('New passwords do not match')
+        return
+      }
+
+      if (passwordForm.newPassword.length < 6) {
+        setError('New password must be at least 6 characters long')
+        return
+      }
+      
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        setSuccess('Password changed successfully!')
+        setShowPasswordForm(false)
+        setPasswordForm({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+        setTimeout(() => setSuccess(""), 3000)
+      } else {
+        setError(data.message || 'Failed to change password')
+      }
+    } catch (error) {
+      setError('Failed to change password')
     }
   }
 
@@ -267,14 +418,26 @@ export default function DashboardPage() {
             <Card className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 text-white border-0 shadow-xl">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold mb-2">Welcome back, {user?.fullName?.split(' ')[0]}! 👋</h2>
-                    <p className="text-blue-100">Track your data exploration journey and manage your preferences</p>
-                  </div>
-                  <div className="hidden md:block">
-                    <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                      <BarChart3 className="w-8 h-8" />
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <BarChart3 className="w-6 h-6 text-white" />
                     </div>
+                    <div>
+                      <h1 className="text-2xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">
+                        StatsOfIndia
+                      </h1>
+                      <p className="text-sm text-muted-foreground">Welcome back, {user?.fullName || 'User'}!</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleLogout}
+                      className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -383,50 +546,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Quick Actions */}
-              <Card className="border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Zap className="w-5 h-5 mr-2 text-purple-600" />
-                    Quick Actions
-                  </CardTitle>
-                  <CardDescription>Common tasks and shortcuts</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Button 
-                      onClick={() => navigate('/data-portal')} 
-                      className="h-20 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg"
-                    >
-                      <Database className="w-5 h-5 mr-2" />
-                      Browse Data
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => navigate('/data-portal')} 
-                      className="h-20 border-2 border-purple-200 hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20"
-                    >
-                      <Bookmark className="w-5 h-5 mr-2" />
-                      My Bookmarks
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => navigate('/')} 
-                      className="h-20 border-2 border-green-200 hover:border-green-300 hover:bg-green-50 dark:hover:bg-green-900/20"
-                    >
-                      <Home className="w-5 h-5 mr-2" />
-                      Home Page
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="h-20 border-2 border-orange-200 hover:border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-                    >
-                      <Settings className="w-5 h-5 mr-2" />
-                      Settings
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+
             </div>
           </TabsContent>
 
@@ -713,52 +833,6 @@ export default function DashboardPage() {
 
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="theme">Theme Preference</Label>
-                    <select
-                      id="theme"
-                      value={preferences.theme}
-                      onChange={(e) => setPreferences({...preferences, theme: e.target.value as 'light' | 'dark' | 'auto'})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600"
-                    >
-                      <option value="light">Light</option>
-                      <option value="dark">Dark</option>
-                      <option value="auto">Auto (System)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <Label>Notification Preferences</Label>
-                    <div className="space-y-2 mt-2">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          id="email-notifications"
-                          type="checkbox"
-                          checked={preferences.notifications.email}
-                          onChange={(e) => setPreferences({
-                            ...preferences, 
-                            notifications: {...preferences.notifications, email: e.target.checked}
-                          })}
-                          className="rounded"
-                        />
-                        <Label htmlFor="email-notifications">Email notifications</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <input
-                          id="push-notifications"
-                          type="checkbox"
-                          checked={preferences.notifications.push}
-                          onChange={(e) => setPreferences({
-                            ...preferences, 
-                            notifications: {...preferences.notifications, push: e.target.checked}
-                          })}
-                          className="rounded"
-                        />
-                        <Label htmlFor="push-notifications">Push notifications</Label>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
                     <Label>Favorite Data Categories</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                       {dataCategories.map((category) => (
@@ -795,6 +869,113 @@ export default function DashboardPage() {
                     <Settings className="w-4 h-4 mr-2" />
                     Save Preferences
                   </Button>
+
+                  <div className="border-t pt-6 mt-6">
+                    <h3 className="text-lg font-semibold mb-4">Account Management</h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setShowProfileForm(!showProfileForm)}
+                          className="w-full"
+                        >
+                          <User className="w-4 h-4 mr-2" />
+                          {showProfileForm ? 'Cancel Profile Update' : 'Update Profile'}
+                        </Button>
+                      </div>
+
+                      {showProfileForm && (
+                        <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div>
+                            <Label htmlFor="fullName">Full Name</Label>
+                            <Input
+                              id="fullName"
+                              value={profileForm.fullName}
+                              onChange={(e) => setProfileForm({...profileForm, fullName: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="phone">Phone</Label>
+                            <Input
+                              id="phone"
+                              value={profileForm.phone}
+                              onChange={(e) => setProfileForm({...profileForm, phone: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="organization">Organization</Label>
+                            <Input
+                              id="organization"
+                              value={profileForm.organization}
+                              onChange={(e) => setProfileForm({...profileForm, organization: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleUpdateProfile}
+                            className="w-full bg-blue-600 hover:bg-blue-700"
+                          >
+                            Update Profile
+                          </Button>
+                        </div>
+                      )}
+
+                      <div>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setShowPasswordForm(!showPasswordForm)}
+                          className="w-full"
+                        >
+                          <Shield className="w-4 h-4 mr-2" />
+                          {showPasswordForm ? 'Cancel Password Change' : 'Change Password'}
+                        </Button>
+                      </div>
+
+                      {showPasswordForm && (
+                        <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div>
+                            <Label htmlFor="currentPassword">Current Password</Label>
+                            <Input
+                              id="currentPassword"
+                              type="password"
+                              value={passwordForm.currentPassword}
+                              onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="newPassword">New Password</Label>
+                            <Input
+                              id="newPassword"
+                              type="password"
+                              value={passwordForm.newPassword}
+                              onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                            <Input
+                              id="confirmPassword"
+                              type="password"
+                              value={passwordForm.confirmPassword}
+                              onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                              className="mt-1"
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleChangePassword}
+                            className="w-full bg-red-600 hover:bg-red-700"
+                          >
+                            Change Password
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

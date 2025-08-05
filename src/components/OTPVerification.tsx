@@ -13,8 +13,9 @@ import {
 } from "lucide-react"
 
 interface OTPVerificationProps {
-  userId: string
+  userId?: string
   email: string
+  tempUserData?: any
   onVerificationSuccess: (userData: any, token: string) => void
   onBack: () => void
 }
@@ -22,6 +23,7 @@ interface OTPVerificationProps {
 export default function OTPVerification({ 
   userId, 
   email, 
+  tempUserData,
   onVerificationSuccess, 
   onBack 
 }: OTPVerificationProps) {
@@ -30,7 +32,7 @@ export default function OTPVerification({
   const [resendLoading, setResendLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  const [timeLeft, setTimeLeft] = useState(600) // 10 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(180) // 3 minutes in seconds
   const [canResend, setCanResend] = useState(false)
 
   useEffect(() => {
@@ -63,26 +65,56 @@ export default function OTPVerification({
       setLoading(true)
       setError("")
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify-email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId,
-          otp
+      // If we have tempUserData, use the new verify-and-register endpoint
+      if (tempUserData) {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify-and-register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            fullName: tempUserData.fullName,
+            email: tempUserData.email,
+            phone: tempUserData.phone,
+            organization: tempUserData.organization,
+            password: tempUserData.password,
+            otp
+          })
         })
-      })
 
-      const data = await response.json()
+        const data = await response.json()
 
-      if (data.success) {
-        setSuccess("Email verified successfully!")
-        setTimeout(() => {
-          onVerificationSuccess(data.data.user, data.data.token)
-        }, 1500)
+        if (data.success) {
+          setSuccess("Account created successfully!")
+          setTimeout(() => {
+            onVerificationSuccess(data.data.user, data.data.token)
+          }, 1500)
+        } else {
+          setError(data.message || 'Verification failed')
+        }
       } else {
-        setError(data.message || 'Verification failed')
+        // Original verification flow for existing users
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/verify-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId,
+            otp
+          })
+        })
+
+        const data = await response.json()
+
+        if (data.success) {
+          setSuccess("Email verified successfully!")
+          setTimeout(() => {
+            onVerificationSuccess(data.data.user, data.data.token)
+          }, 1500)
+        } else {
+          setError(data.message || 'Verification failed')
+        }
       }
     } catch (error) {
       setError('Network error. Please try again.')
@@ -96,21 +128,28 @@ export default function OTPVerification({
       setResendLoading(true)
       setError("")
 
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/resend-otp`, {
+      const endpoint = tempUserData ? '/api/auth/register' : '/api/auth/resend-otp'
+      const body = tempUserData ? {
+        fullName: tempUserData.fullName,
+        email: tempUserData.email,
+        phone: tempUserData.phone,
+        organization: tempUserData.organization,
+        password: tempUserData.password
+      } : { userId }
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          userId
-        })
+        body: JSON.stringify(body)
       })
 
       const data = await response.json()
 
       if (data.success) {
         setSuccess("New verification code sent to your email!")
-        setTimeLeft(600)
+        setTimeLeft(180) // Reset to 3 minutes
         setCanResend(false)
         setOtp("")
       } else {
@@ -195,7 +234,7 @@ export default function OTPVerification({
               ) : (
                 <>
                   <CheckCircle className="w-4 h-4 mr-2" />
-                  Verify Email
+                  {tempUserData ? 'Create Account' : 'Verify Email'}
                 </>
               )}
             </Button>

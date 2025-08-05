@@ -25,10 +25,23 @@ router.post('/register', validateRegistration, async (req, res) => {
 
     // Generate OTP
     const otp = generateOTP();
-    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpiresAt = new Date(Date.now() + 3 * 60 * 1000); // 3 minutes
 
-    // Create new user with OTP
-    const user = new User({
+    // Send OTP email first
+    const emailResult = await sendOTPEmail(email, otp);
+    if (!emailResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification email. Please try again.'
+      });
+    }
+
+    // TEMPORARY: Log OTP for testing (remove in production)
+    console.log(`🔢 OTP for ${email}: ${otp}`);
+    console.log(`📧 Email sent: ${emailResult.messageId}`);
+
+    // Create temporary user data (not saved to database yet)
+    const tempUserData = {
       fullName,
       email,
       phone,
@@ -39,27 +52,16 @@ router.post('/register', validateRegistration, async (req, res) => {
         code: otp,
         expiresAt: otpExpiresAt
       }
-    });
+    };
 
-    await user.save();
-
-    // Send OTP email
-    const emailResult = await sendOTPEmail(email, otp);
-    if (!emailResult.success) {
-      // If email fails, delete the user and return error
-      await User.findByIdAndDelete(user._id);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to send verification email. Please try again.'
-      });
-    }
-
-    res.status(201).json({
+    // Store temporary data in session or return it to frontend
+    res.status(200).json({
       success: true,
-      message: 'Registration successful! Please check your email for verification code.',
+      message: 'Verification code sent! Please check your email and verify your account.',
       data: {
-        userId: user._id,
-        email: user.email
+        tempUserData,
+        email: email,
+        requiresVerification: true
       }
     });
   } catch (error) {
@@ -67,6 +69,72 @@ router.post('/register', validateRegistration, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error during registration'
+    });
+  }
+});
+
+// @route   POST /api/auth/verify-and-register
+// @desc    Verify OTP and create user account
+// @access  Public
+router.post('/verify-and-register', async (req, res) => {
+  try {
+    const { fullName, email, phone, organization, password, otp } = req.body;
+
+    if (!fullName || !email || !password || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'All required fields are needed'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists'
+      });
+    }
+
+    // Create new user with verified email
+    const user = new User({
+      fullName,
+      email,
+      phone,
+      organization,
+      password,
+      isEmailVerified: true,
+      emailVerificationOTP: {
+        code: null,
+        expiresAt: null
+      }
+    });
+
+    await user.save();
+
+    // Send welcome email
+    await sendWelcomeEmail(email, fullName);
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'stats-of-india-super-secret-jwt-key-2024',
+      { expiresIn: '7d' }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Account created successfully! Welcome to StatsOfIndia.',
+      data: {
+        user: user.profile,
+        token
+      }
+    });
+  } catch (error) {
+    console.error('Verification and registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during account creation'
     });
   }
 });
@@ -384,7 +452,7 @@ router.post('/search-history', auth, async (req, res) => {
 // @access  Private
 router.put('/preferences', auth, async (req, res) => {
   try {
-    const { theme, notifications, dataCategories } = req.body;
+    const { dataCategories } = req.body;
     
     const user = await User.findById(req.user.userId);
     if (!user) {
@@ -396,10 +464,9 @@ router.put('/preferences', auth, async (req, res) => {
 
     // Update preferences
     user.preferences = {
-      theme: theme || user.preferences?.theme || 'auto',
       notifications: {
-        email: notifications?.email ?? true,
-        push: notifications?.push ?? false
+        email: user.preferences?.notifications?.email ?? true,
+        push: user.preferences?.notifications?.push ?? false
       },
       dataCategories: dataCategories || []
     };
@@ -413,6 +480,102 @@ router.put('/preferences', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Update preferences error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   PUT /api/auth/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { fullName, phone, organization } = req.body;
+    
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update profile fields
+    if (fullName) user.fullName = fullName;
+    if (phone !== undefined) user.phone = phone;
+    if (organization !== undefined) user.organization = organization;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        user: user.profile
+      }
+    });
+
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   PUT /api/auth/change-password
+// @desc    Change user password
+// @access  Private
+router.put('/change-password', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password and new password are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long'
+      });
+    }
+
+    const user = await User.findById(req.user.userId).select('+password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await user.comparePassword(currentPassword);
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Update password
+    user.password = newPassword;
+    user.passwordChangedAt = new Date();
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+
+  } catch (error) {
+    console.error('Change password error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error'

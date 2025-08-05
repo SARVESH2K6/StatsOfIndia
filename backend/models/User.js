@@ -68,11 +68,6 @@ const userSchema = new mongoose.Schema({
     default: null
   },
   preferences: {
-    theme: {
-      type: String,
-      enum: ['light', 'dark', 'auto'],
-      default: 'auto'
-    },
     notifications: {
       email: {
         type: Boolean,
@@ -87,6 +82,18 @@ const userSchema = new mongoose.Schema({
       type: String,
       enum: ['demographics', 'education', 'economy', 'health', 'agriculture', 'infrastructure']
     }]
+  },
+  passwordChangedAt: {
+    type: Date,
+    default: null
+  },
+  passwordResetToken: {
+    type: String,
+    default: null
+  },
+  passwordResetExpires: {
+    type: Date,
+    default: null
   },
   downloadHistory: [{
     datasetId: {
