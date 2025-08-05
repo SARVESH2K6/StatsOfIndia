@@ -9,6 +9,9 @@ import DataPortal from "./pages/DataPortal"
 import DatasetDetail from "./pages/DatasetDetail"
 import Statistics from "./pages/Statistics"
 import TopicPage from "./pages/Topic"
+import TermsAndConditions from "./pages/TermsAndConditions"
+import PrivacyPolicy from "./pages/PrivacyPolicy"
+
 import Navigation from "./components/Navigation"
 import "./globals.css"
 
@@ -52,7 +55,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-stone-900 dark:via-neutral-800 dark:to-slate-900">
         <Navigation user={user} onLogout={handleLogout} />
         
         <Routes>
@@ -72,6 +75,9 @@ export default function App() {
           <Route path="/dataset/:id" element={<DatasetDetail />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/topic/:id" element={<TopicPage />} />
+          <Route path="/terms" element={<TermsAndConditions />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+
         </Routes>
       </div>
     </Router>

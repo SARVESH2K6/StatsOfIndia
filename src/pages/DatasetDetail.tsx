@@ -35,7 +35,6 @@ import {
   BookmarkPlus
 } from "lucide-react"
 import { ThemeToggle } from "../components/theme-toggle"
-import CSVPreview from "../components/CSVPreview"
 
 interface Dataset {
   _id: string
@@ -98,13 +97,6 @@ export default function DatasetDetailPage() {
   const [user, setUser] = useState<any>(null)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [isBookmarked, setIsBookmarked] = useState(false)
-  const [previewFile, setPreviewFile] = useState<{
-    datasetId: string
-    fileId: string
-    fileName: string
-    fileType: string
-    fileSize: number
-  } | null>(null)
 
   // Check authentication status
   useEffect(() => {
@@ -318,25 +310,6 @@ export default function DatasetDetailPage() {
     }
   }
 
-  const handlePreview = (file: any) => {
-    if (file.fileType.toLowerCase() !== 'csv') {
-      alert('Preview is only available for CSV files')
-      return
-    }
-
-    setPreviewFile({
-      datasetId: id!,
-      fileId: file._id,
-      fileName: file.originalName,
-      fileType: file.fileType,
-      fileSize: file.fileSize
-    })
-  }
-
-  const handleClosePreview = () => {
-    setPreviewFile(null)
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -344,23 +317,11 @@ export default function DatasetDetailPage() {
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
             <p className="mt-4 text-gray-600 dark:text-gray-400">Loading dataset details...</p>
-                  </div>
+          </div>
+        </div>
       </div>
-
-      {/* CSV Preview Modal */}
-      {previewFile && (
-        <CSVPreview
-          datasetId={previewFile.datasetId}
-          fileId={previewFile.fileId}
-          fileName={previewFile.fileName}
-          fileType={previewFile.fileType}
-          fileSize={previewFile.fileSize}
-          onClose={handleClosePreview}
-        />
-      )}
-    </div>
-  )
-}
+    )
+  }
 
   if (error || !dataset) {
     return (
@@ -557,16 +518,6 @@ export default function DatasetDetailPage() {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {file.fileType.toLowerCase() === 'csv' && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePreview(file)}
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            Preview
-                          </Button>
-                        )}
                         <Button
                           onClick={() => handleDownload(file._id, file.originalName)}
                           disabled={downloading === file._id}

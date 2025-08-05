@@ -250,21 +250,21 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-stone-900 dark:via-neutral-800 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-6">
-          <Link to="/" className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4 transition-colors">
+          <Link to="/" className="inline-flex items-center text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
           
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg">
               <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">
+              <h1 className="text-2xl font-extrabold bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 bg-clip-text text-transparent tracking-tight">
                 StatsOfIndia
               </h1>
               <p className="text-xs text-muted-foreground font-medium">Join the Data Revolution</p>
@@ -273,12 +273,12 @@ export default function RegisterPage() {
         </div>
 
         {/* Registration Form */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+        <Card className="shadow-xl border-0 bg-stone-50/80 backdrop-blur-sm dark:bg-stone-800/80">
           <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">
+            <CardTitle className="text-xl font-bold text-stone-900 dark:text-stone-100">
               Create Your Account
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400 text-sm">
+            <CardDescription className="text-stone-600 dark:text-stone-400 text-sm">
               Join thousands of users accessing India's official statistics
             </CardDescription>
           </CardHeader>
@@ -515,7 +515,7 @@ export default function RegisterPage() {
               {/* Submit Button */}
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 text-white font-medium py-2 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                className="w-full bg-gradient-to-r from-amber-600 via-orange-600 to-yellow-600 hover:from-amber-700 hover:via-orange-700 hover:to-yellow-700 text-white font-medium py-2 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
                 disabled={loading}
               >
                 {loading ? (

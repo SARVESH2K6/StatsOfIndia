@@ -78,21 +78,21 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 dark:from-stone-900 dark:via-neutral-800 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4">
+          <Link to="/" className="inline-flex items-center text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </Link>
           
           <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-r from-amber-600 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
               <BarChart3 className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">
+              <h1 className="text-3xl font-extrabold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent tracking-tight">
                 StatsOfIndia
               </h1>
               <p className="text-sm text-muted-foreground font-medium">Official Government Data Portal</p>
@@ -101,12 +101,12 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
         </div>
 
         {/* Login Card */}
-        <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm dark:bg-gray-900/80">
+        <Card className="shadow-xl border-0 bg-stone-50/80 backdrop-blur-sm dark:bg-stone-900/80">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
+            <CardTitle className="text-2xl font-bold text-stone-900 dark:text-stone-100">
               Secure Login
             </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400">
+            <CardDescription className="text-stone-600 dark:text-stone-400">
               Access your account to download datasets
             </CardDescription>
           </CardHeader>
@@ -122,7 +122,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <Label htmlFor="email" className="text-sm font-medium text-stone-700 dark:text-stone-300">
                   Email Address
                 </Label>
                 <Input
@@ -138,7 +138,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <Label htmlFor="password" className="text-sm font-medium text-stone-700 dark:text-stone-300">
                   Password
                 </Label>
                 <div className="relative">
@@ -155,7 +155,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -164,7 +164,7 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white"
                 disabled={loading}
               >
                 {loading ? (
@@ -179,27 +179,27 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-stone-600 dark:text-stone-400">
                 Don't have an account?{" "}
                 <Link
                   to="/register"
-                  className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+                  className="font-medium text-amber-600 hover:text-amber-500 dark:text-amber-400 dark:hover:text-amber-300"
                 >
                   Create one here
                 </Link>
               </p>
             </div>
 
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div className="mt-6 pt-6 border-t border-stone-200 dark:border-stone-700">
               <div className="text-center">
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mb-2">
                   Demo Account
                 </p>
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-xs">
-                  <p className="text-gray-600 dark:text-gray-400">
+                <div className="bg-stone-50 dark:bg-stone-800 rounded-lg p-3 text-xs">
+                  <p className="text-stone-600 dark:text-stone-400">
                     <strong>Email:</strong> admin@statsofindia.com
                   </p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-stone-600 dark:text-stone-400">
                     <strong>Password:</strong> admin123
                   </p>
                 </div>

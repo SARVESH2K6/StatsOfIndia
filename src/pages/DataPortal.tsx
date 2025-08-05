@@ -36,7 +36,8 @@ import {
   Grid,
   List,
   Info,
-  ExternalLink
+  ExternalLink,
+  Settings
 } from "lucide-react"
 import { ThemeToggle } from "../components/theme-toggle"
 
@@ -84,6 +85,7 @@ export default function DataPortalPage() {
   const [user, setUser] = useState<any>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [bookmarkedDatasets, setBookmarkedDatasets] = useState<string[]>([])
+  const [userPreferences, setUserPreferences] = useState<string[]>([])
 
   const categories = [
     { value: "all", label: "All Categories" },
@@ -161,6 +163,7 @@ export default function DataPortalPage() {
       setIsLoggedIn(true)
       setUser(JSON.parse(userData))
       fetchBookmarkedDatasets()
+      fetchUserPreferences()
     }
   }, [])
 
@@ -185,6 +188,24 @@ export default function DataPortalPage() {
       }
     } catch (error) {
       console.error('Error fetching bookmarked datasets:', error)
+    }
+  }
+
+  const fetchUserPreferences = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        setUserPreferences(data.data.preferences?.dataCategories || [])
+      }
+    } catch (error) {
+      console.error('Error fetching user preferences:', error)
     }
   }
 
@@ -360,72 +381,6 @@ export default function DataPortalPage() {
     navigate(`/dataset/${dataset._id}`)
   }
 
-  const handlePreview = async (dataset: Dataset) => {
-    try {
-      // Check if dataset has CSV files
-      const hasCSV = dataset.files.some(file => file.fileType === 'csv')
-      if (!hasCSV) {
-        alert('Preview is only available for CSV files. This dataset does not contain CSV files.')
-        return
-      }
-
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/datasets/${dataset._id}/preview`)
-      const data = await response.json()
-      
-      if (data.success) {
-        // Show preview in a modal or new window
-        const previewWindow = window.open('', '_blank', 'width=800,height=600')
-        if (previewWindow) {
-          previewWindow.document.write(`
-            <html>
-              <head>
-                <title>Dataset Preview - ${dataset.title}</title>
-                <style>
-                  body { font-family: Arial, sans-serif; margin: 20px; }
-                  table { border-collapse: collapse; width: 100%; }
-                  th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                  th { background-color: #f2f2f2; }
-                  .header { background: #1f2937; color: white; padding: 20px; margin: -20px -20px 20px -20px; }
-                  .info { margin-bottom: 20px; }
-                </style>
-              </head>
-              <body>
-                <div class="header">
-                  <h1>Dataset Preview</h1>
-                  <p><strong>${dataset.title}</strong></p>
-                  <p>Showing first 10 rows of data</p>
-                </div>
-                <div class="info">
-                  <p><strong>Category:</strong> ${dataset.category}</p>
-                  <p><strong>State:</strong> ${dataset.state}</p>
-                  <p><strong>Year:</strong> ${dataset.year}</p>
-                </div>
-                <table>
-                  <thead>
-                    <tr>
-                      ${data.headers.map((header: string) => `<th>${header}</th>`).join('')}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    ${data.rows.map((row: any[]) => 
-                      `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`
-                    ).join('')}
-                  </tbody>
-                </table>
-              </body>
-            </html>
-          `)
-          previewWindow.document.close()
-        }
-      } else {
-        alert(data.message || 'Preview not available for this dataset')
-      }
-    } catch (error) {
-      console.error('Preview error:', error)
-      alert('Error loading preview. Please try again.')
-    }
-  }
-
   const clearFilters = () => {
     setSearchQuery("")
     setSelectedCategory("all")
@@ -445,6 +400,14 @@ export default function DataPortalPage() {
       return matchesSearch && matchesCategory && matchesState && matchesYear
     })
     .sort((a, b) => {
+      // First, prioritize preferred categories
+      const aIsPreferred = userPreferences.includes(a.category)
+      const bIsPreferred = userPreferences.includes(b.category)
+      
+      if (aIsPreferred && !bIsPreferred) return -1
+      if (!aIsPreferred && bIsPreferred) return 1
+      
+      // Then apply the selected sort order
       let aValue: any, bValue: any
 
       switch (sortBy) {
@@ -488,7 +451,7 @@ export default function DataPortalPage() {
   ].filter(Boolean)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100 dark:from-stone-900 dark:to-neutral-800">
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search and Filters */}
@@ -636,6 +599,66 @@ export default function DataPortalPage() {
           )}
         </div>
 
+        {/* User Preferences Section */}
+        {isLoggedIn && (
+          <div className="mb-8">
+            {userPreferences.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Star className="w-5 h-5 mr-2 text-yellow-500" />
+                      Your Preferred Categories
+                    </div>
+                                      <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Manage Preferences
+                  </Button>
+                  </CardTitle>
+                  <CardDescription>
+                    Datasets from your preferred categories are shown first
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {userPreferences.map((category) => {
+                      const categoryInfo = categories.find(c => c.value === category)
+                      return (
+                        <Badge key={category} className={getCategoryColor(category)}>
+                          {categoryInfo?.label || category}
+                        </Badge>
+                      )
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Settings className="w-5 h-5 mr-2 text-blue-500" />
+                      Personalize Your Experience
+                    </div>
+                                      <Button variant="outline" size="sm" onClick={() => navigate('/dashboard')}>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Set Preferences
+                  </Button>
+                  </CardTitle>
+                  <CardDescription>
+                    Set your preferred data categories to see relevant datasets first
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Choose your preferred data categories in settings to prioritize relevant datasets in your browse experience.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* Upload Section for Admin Users Only */}
         {isLoggedIn && user?.role === 'admin' && (
           <div className="mb-8">
@@ -716,6 +739,9 @@ export default function DataPortalPage() {
                         <Badge className={getCategoryColor(dataset.category)}>
                           {dataset.category}
                         </Badge>
+                        {userPreferences.includes(dataset.category) && (
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                        )}
                       </div>
                       <div className="flex items-center space-x-1 text-sm text-gray-500 min-w-0">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0" />
@@ -780,15 +806,6 @@ export default function DataPortalPage() {
                       )}
 
                       <div className="flex flex-wrap gap-2 pt-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 min-w-0"
-                          onClick={() => handlePreview(dataset)}
-                        >
-                          <Eye className="w-4 h-4 mr-2 flex-shrink-0" />
-                          <span className="truncate">Preview</span>
-                        </Button>
                         <Button 
                           variant="outline" 
                           size="sm" 
